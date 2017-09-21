@@ -1,0 +1,22 @@
+TODO list
+
+application_task.c  
+  - verify when alarm_state goes false from user_action or window timeout or cancelled by button, etc
+  - how down window time left versus snooze work?
+  
+  
+  
+ change all asserts to app_error_handler
+find all error returns 
+  
+  
+add fix sfw error log entries
+// TODO verify and send error/success from service updates back to phone
+
+get rid of all refs to heart
+
+make service_task event driven instgead of on a tick
+
+sleep data
+
+verify howto clean up when flash fails

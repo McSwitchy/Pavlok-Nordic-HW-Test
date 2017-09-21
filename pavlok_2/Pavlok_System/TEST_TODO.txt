@@ -1,0 +1,15 @@
+Limits to all configs
+all notifications
+All log commands
+phone app loads and roll overs
+phone app 20byte even boundaries
+
+log roll overs
+
+add back in trace and check all decision trees
+verify habit roll overs
+verify sleep data storage and retrieval
+
+serivce_task on events only
+
+button press stimulus type 

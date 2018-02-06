@@ -43,8 +43,8 @@
 #define PWM_POLARITY_HIGH(x)				(uint16_t)((uint16_t)(1 << 15) | x)
 #define PWM_POLARITY_LOW(x) 	      (uint16_t)x
 
-// Vibration motor instance is driven through a clock frequency of 125 KHz (Tpwmclock: 8 us). According to PWM section 45.1 of 
-// NRF52 product spec, Tpwm = Tpwmclock * COUNTERTOP. Vibration Motor will be operated at 1000 Hz (Tpwm: 1 ms).  
+// Vibration motor instance is driven through a clock frequency of 125 KHz (Tpwmclock: 8 us). According to PWM section 45.1 of
+// NRF52 product spec, Tpwm = Tpwmclock * COUNTERTOP. Vibration Motor will be operated at 1000 Hz (Tpwm: 1 ms).
 // Thus, COUNTERTOP value is 125.
 
 #define PWM_DEBUG											(0)
@@ -62,7 +62,7 @@
 #define PWM_MOTOR_SCALE_FACTOR	      (PWM_MOTOR_COUNTERTOP/100)
 #define PWM_MOTOR_USE_ACTIVE_HIGH			(1)
 
-// PWM frequency for Piezo ranges between 2 KHz (500 us) to 6 KHz (167 us). This instance is driven through a clock frequency 
+// PWM frequency for Piezo ranges between 2 KHz (500 us) to 6 KHz (167 us). This instance is driven through a clock frequency
 // of 1 MHz (1 us). Thus, the COUNTERTOP value will respectively range between 500 and 167.
 
 #if PWM_DEBUG
@@ -97,7 +97,7 @@ typedef uint16_t PWM_PERCENT_T;
 **	@enum	PWM_UPDATE_RC
 **	----------------------------------------------------------------------
 */
-typedef enum 
+typedef enum
 {
 	UPDATE_SUCCESS = 0,
 	INVALID_DUTY_CYCLE,
@@ -152,7 +152,7 @@ void pwm_motor_init(void);
 **	@fn		Function	pwm_zap_init
 **
 **	@brief	Description Initializes the PWM peripheral for the Zap function
-**						
+**
 **
 **	@param [in]			None
 **
@@ -168,7 +168,7 @@ void pwm_zap_init(void);
 
 /**	----------------------------------------------------------------------
 **
-**	@fn		Function	pwm_pizeo_update_duty_and_frequency
+**	@fn		Function	pwm_piezo_update_duty_and_frequency
 **
 **	@brief	Description realtime change for duty cycle and frequency
 **
@@ -186,7 +186,7 @@ void pwm_zap_init(void);
 **
 **	----------------------------------------------------------------------
 */
-PWM_UPDATE_RC pwm_pizeo_update_duty_and_frequency(PWM_PERCENT_T duty, uint16_t frequency);
+PWM_UPDATE_RC pwm_piezo_update_duty_and_frequency(PWM_PERCENT_T duty, uint16_t frequency);
 
 /**	----------------------------------------------------------------------
 **

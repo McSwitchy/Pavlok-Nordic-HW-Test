@@ -6,13 +6,13 @@
 **  @{
 **  @ingroup	PAVLOK_LED
 **  @brief Alert Notification module.
-**  
-**  @details This module implements 
-**  
-**  @note The application must 
-**  
+**
+**  @details This module implements
+**
+**  @note The application must
+**
 **  @note Attention!
-**   
+**
 **
 **	----------------------------------------------------------------------
 */
@@ -38,7 +38,7 @@
 */
 #define X(a, b) b,
 uint8_t ledPinLookup[] = {
-	LED_TABLE	
+	LED_TABLE
 };
 #undef X
 
@@ -77,11 +77,11 @@ LED_OP_T set_led(LED_T led) {
 	if (ledsInitialized == 0) {
 		return LED_OP_UNINIITALIZED;
 	}
-	if (led > NUM_OF_LEDS) {
+	if (led >= NUM_OF_LEDS) {
 		return LED_OP_INVALID_PIN;
 	}
 	nrf_gpio_pin_set(ledPinLookup[led]);
-	
+
 	return LED_OP_SUCCESS;
 }
 
@@ -94,11 +94,11 @@ LED_OP_T set_led(LED_T led) {
 **	----------------------------------------------------------------------
 */
 LED_OP_T clear_led(LED_T led) {
-	if (led > NUM_OF_LEDS) {
+	if (led >= NUM_OF_LEDS) {
 		return LED_OP_INVALID_PIN;
 	}
 	nrf_gpio_pin_clear(ledPinLookup[led]);
-	
+
 	return LED_OP_SUCCESS;
 }
 /** @} */

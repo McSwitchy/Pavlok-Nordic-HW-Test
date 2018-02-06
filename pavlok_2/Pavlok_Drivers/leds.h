@@ -3,13 +3,13 @@
 **	@file		led.h
 **
 **  @brief 		This file include the PAVLOK LED pin configuration
-**  
-**  @details This module includes the led init set and clear prototypes 
-**  
-**  @note  
-**  
-**  @note 
-**   
+**
+**  @details This module includes the led init set and clear prototypes
+**
+**  @note
+**
+**  @note
+**
 **
 **	----------------------------------------------------------------------
 */
@@ -35,13 +35,13 @@
 **	----------------------------------------------------------------------
 */
 #define LED_TABLE \
-X(LED1, 16) \
-X(LED2, 17) \
-X(LED3, 18)	\
-X(LED4, 19) \
-X(LED5, 20) \
-X(LED6,  9) \
-X(LED7, 10) 
+X(LED1, 19) \
+X(LED2, 16) \
+X(LED3, 20)	\
+X(LED4,  9) \
+X(LED5, 10) \
+X(LED6, 17) \
+X(LED7, 18)
 
 #define LED_RED	(LED6)
 #define LED_GREEN	(LED7)
@@ -104,7 +104,7 @@ void init_leds(void);
 **
 **	@fn		Function		set_led
 **
-**	@brief	Description		
+**	@brief	Description
 **
 **	@param [in]				LED_T led - which led to set
 **
@@ -126,7 +126,7 @@ LED_OP_T set_led(LED_T led);
 **
 **	@fn		Function		clear_led
 **
-**	@brief	Description		
+**	@brief	Description
 **
 **	@param [in]				LED_T led - which led to clear
 **

@@ -3,8 +3,8 @@
 **	@file									adc.h
 **
 **  @brief Description		data necessary to implement the adc for pavlok
-**  
-**  @note 
+**
+**  @note
 **
 **------------------------------------------------------------------------
 */
@@ -26,8 +26,9 @@
 **	@brief	Global Data
 **	----------------------------------------------------------------------
 */
-#define ADC_CHANNEL_BATTERY_VOLTAGE 				(NRF_SAADC_INPUT_AIN6) // P0.30
+#define ADC_CHANNEL_BATTERY_VOLTAGE 			(NRF_SAADC_INPUT_AIN6) // P0.30
 #define ADC_CHANNEL_HIGH_VOLTAGE_MONITOR		(NRF_SAADC_INPUT_AIN5) // P0.29
+#define ADC_CHANNEL_USB_VOLTAGE                 (NRF_SAADC_INPUT_AIN7) // P0.31
 
 #define ADC_REF_VOLTAGE_IN_MILLIVOLTS 			(600)
 #define ADC_PRE_SCALING_COMPENSATION  			(6)
@@ -44,8 +45,9 @@
 **	----------------------------------------------------------------------
 */
 typedef enum {
-	BATTERY_VOLTAGE = 0,
-	HIGH_VOLTAGE_MONITOR,
+	BATTERY_VOLTAGE        = 0,
+	HIGH_VOLTAGE_MONITOR   = 1,
+    USB_VOLTAGE_CHAN       = 2,
 	NUMBER_OF_SUPPORTED_ADC_CHANNELS
 } ADC_CHANNEL_T;
 

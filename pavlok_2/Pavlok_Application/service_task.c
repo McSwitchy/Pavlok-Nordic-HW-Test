@@ -2,17 +2,17 @@
 **
 **	@file
 **
-**  @defgroup 
+**  @defgroup
 **  @{
-**  @ingroup 
+**  @ingroup
 **  @brief Alert Notification module.
-**  
-**  @details This module implements 
-**  
-**  @note The application must 
-**  
+**
+**  @details This module implements
+**
+**  @note The application must
+**
 **  @note Attention!
-**   
+**
 **
 **	----------------------------------------------------------------------
 */
@@ -20,7 +20,7 @@
 
 /**	----------------------------------------------------------------------
 **	@brief System Include(s)
-When using the softdevice, the second ram-block is used for the application. 
+When using the softdevice, the second ram-block is used for the application.
 Make sure that both RAM-blocks are being powered under systemoff using sd_power_ramon_set(). P
 lease see the nRF51 reference manual for which bits you should set in the register.
 
@@ -103,7 +103,7 @@ typedef struct
   int32_t           zap_off;
 	int8_t						total_count;
 	int8_t						countdown;
-	
+
 } sPerformAction_t;
 
 // TODO remove if service task is not used for alarms/applications
@@ -115,9 +115,9 @@ static int32_t								check_battery_voltage_countdown		= PLOK_CHECK_VBATT_INTERV
 //static bool										piezo_action_started	= false;
 //static bool										motor_action_started	= false;
 
-static TimerHandle_t m_perform_action_timer	= NULL; 
-static TimerHandle_t m_service_timer				= NULL; 
-static TaskHandle_t  m_service_thread				= NULL; 
+static TimerHandle_t m_perform_action_timer	= NULL;
+static TimerHandle_t m_service_timer				= NULL;
+static TaskHandle_t  m_service_thread				= NULL;
 // REMOVED static uint8_t       m_charging_blinker_state = 0;
 
 static int kbbCounter = 0;
@@ -137,9 +137,9 @@ void perform_action_timers_stop(void)
 static void perform_action_timeout_handler(TimerHandle_t xTimer)
 {
     UNUSED_PARAMETER(xTimer);
-	
+
 		// all actions start in the on state and multiple stimuli can be active
-	
+
 	if (0 < piezo_action.countdown)
 	{
 		if (ACTION_STATE_ON == piezo_action.state)
@@ -148,7 +148,7 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 			if (0 == piezo_action.on_time)
 			{
 				// turn off stimulus, reset off time and change action state
-				pwm_pizeo_update_duty_and_frequency(0, piezo_action.frequency);
+				pwm_piezo_update_duty_and_frequency(0, piezo_action.frequency);
 				if (NULL != p_config)
 				{
 					piezo_action.on_time = p_config->piezo_value[PLOK_INDEX_ONTIME_BYTE_PIEZO];
@@ -157,7 +157,7 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 				{
 					ASSERT(0 == 1);
 				}
-				piezo_action.state = ACTION_STATE_OFF;				
+				piezo_action.state = ACTION_STATE_OFF;
 			}
 		}
 		else if (ACTION_STATE_OFF == piezo_action.state)
@@ -177,7 +177,7 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 				{
 					ASSERT(0 == 1);
 				}
-				
+
 				// we have been one full cycle so we delay 250ms before starting again
 				if (0 <= piezo_action.countdown)
 				{
@@ -197,12 +197,12 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 			piezo_action.total_count		-= ACTION_TICK_RATE_MS;
 			if (0 <= piezo_action.total_count)
 			{
-				piezo_action.state = ACTION_STATE_ON;				
-				pwm_pizeo_update_duty_and_frequency(piezo_action.duty_cycle, piezo_action.frequency);
+				piezo_action.state = ACTION_STATE_ON;
+				pwm_piezo_update_duty_and_frequency(piezo_action.duty_cycle, piezo_action.frequency);
 			}
 		}
 	}
-	
+
 	if (0 < motor_action.countdown)
 	{
 		if (ACTION_STATE_ON == motor_action.state)
@@ -220,7 +220,7 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 				{
 					ASSERT(0 == 1);
 				}
-				motor_action.state = ACTION_STATE_OFF;				
+				motor_action.state = ACTION_STATE_OFF;
 			}
 		}
 		else if (ACTION_STATE_OFF == motor_action.state)
@@ -240,7 +240,7 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 				{
 					ASSERT(0 == 1);
 				}
-				
+
 				// we have been one full cycle so we delay 250ms before starting again
 				if (0 <= motor_action.countdown)
 				{
@@ -260,12 +260,12 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 			motor_action.total_count		-= ACTION_TICK_RATE_MS;
 			if (0 <= motor_action.total_count)
 			{
-				motor_action.state = ACTION_STATE_ON;				
+				motor_action.state = ACTION_STATE_ON;
 				pwm_motor_update_duty_and_frequency(motor_action.duty_cycle, motor_action.frequency);
 			}
 		}
 	}
-	
+
 	if (0 < zap_action.countdown)
 	{
 //    SEGGER_RTT_WriteString(0, "zS\r\n");
@@ -277,8 +277,8 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 //     SEGGER_RTT_WriteString(0, "zOnr\n");
        // we've run out of time so zap them w/o being fully charged
 				zap_action.zap_on = PLOK_ONTIME_BYTE_ZAPPER;
-        zap_action.state = ACTION_STATE_OFF;				
-				zap_gpio_enable();			
+        zap_action.state = ACTION_STATE_OFF;
+				zap_gpio_enable();
       }
       else
       {
@@ -288,11 +288,11 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
         {
 //   SEGGER_RTT_printf(0, "A 0x%X P 0x%X\r\n", volts, zap_action.duty_cycle);
 //   SEGGER_RTT_WriteString(0, "zZ\r\n");
-          zap_action.state = ACTION_STATE_OFF;				
+          zap_action.state = ACTION_STATE_OFF;
 
           // we are charged and ready so go ahead and release the zap as we are in the perform action state
           zap_action.zap_on = PLOK_ONTIME_BYTE_ZAPPER;
-          zap_action.state = ACTION_STATE_OFF;				
+          zap_action.state = ACTION_STATE_OFF;
           zap_gpio_enable();
         }
       }
@@ -309,7 +309,7 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 
          // reload if there is another time
 				zap_action.zap_off = PLOK_OFFTIME_BYTE_ZAPPER;
-        zap_action.state = ACTION_STATE_ON;				
+        zap_action.state = ACTION_STATE_ON;
 
 				// we have been one full cycle so we delay 250ms before starting again
 				if (0 < zap_action.countdown)
@@ -334,12 +334,12 @@ static void perform_action_timeout_handler(TimerHandle_t xTimer)
 			if (0 <= zap_action.total_count)
 			{
 //	    SEGGER_RTT_WriteString(0, "zD2\r\n");
-			zap_action.state = ACTION_STATE_ON;				
+			zap_action.state = ACTION_STATE_ON;
         charge_zapper();
 			}
 		}
 	}
-	
+
 	if ((0 == piezo_action.countdown)
 			&& (0 == motor_action.countdown)
 			&& (0 == zap_action.countdown))
@@ -385,49 +385,49 @@ static void service_application_timers_stop(void)
 static void service_task_start_led_action(uint8_t action_type, uint8_t count, uint8_t pattern)
 {
   switch (action_type)
-	{									
-    case LED_PATTERN_BLINK :									
-    {										
-      pavlok_led_bit_pattern((LED_T)pattern, count);									
-    }									
-    break;									
-									
-    case LED_PATTERN_DOWN_LIGHTNING_BOLT :									
-    {										
-      pavlok_led_lightning_down(count);									
-    }									
+	{
+    case LED_PATTERN_BLINK :
+    {
+      pavlok_led_bit_pattern((LED_T)pattern, count);
+    }
     break;
-																		
+
+    case LED_PATTERN_DOWN_LIGHTNING_BOLT :
+    {
+      pavlok_led_lightning_down(count);
+    }
+    break;
+
     case LED_PATTERN_UP_LIGHTNING_BOLT :
-									
-    {										
-      pavlok_led_lightning_up(count);									
-    }									
+
+    {
+      pavlok_led_lightning_up(count);
+    }
     break;
-									
-									
-    case LED_PATTERN_FLASH_ALL :									
-    {										
-      pavlok_led_flash_all(count);									
-    }									
-    break;									
-									
-    case LED_PATTERN_REWARD :									
-    {										
-      pavlok_led_reward_pattern();									
-    }									
-    break;									
-									
-    case LED_PATTERN_WARNING :									
-    {										
-      pavlok_led_warning_pattern();									
-    }									
+
+
+    case LED_PATTERN_FLASH_ALL :
+    {
+      pavlok_led_flash_all(count);
+    }
     break;
-																		
-    default:									
-    {									      									
-    }									
-    break;																	
+
+    case LED_PATTERN_REWARD :
+    {
+      pavlok_led_reward_pattern();
+    }
+    break;
+
+    case LED_PATTERN_WARNING :
+    {
+      pavlok_led_warning_pattern();
+    }
+    break;
+
+    default:
+    {
+    }
+    break;
   } // eos
 }
 
@@ -454,7 +454,7 @@ static void service_task_timeout_handler(TimerHandle_t xTimer)
       PAVLOK_LOG_ENTRY(current_event, param5, 0, 0, 0);
       param5++;
     }
-    
+
     current_event++;
     if (current_event >= EVT_ALARM_OFF)
     {
@@ -462,7 +462,7 @@ static void service_task_timeout_handler(TimerHandle_t xTimer)
     }
    }
 #endif
-   
+
 	if (NULL != m_service_thread)
 	{
 		(void)xTaskNotifyGive( m_service_thread );
@@ -496,33 +496,33 @@ static void check_charging(bool leds_on, millivoltsBattery_t battery_voltage)
     {
       set_led(LED_RED);
     }
-    
+
     if (PAVLOK_BATTERY_LEVEL_3000 <= battery_voltage)
     {
       clear_led(LED_RED);
       set_led(LED1);
     }
-    
+
     if (PAVLOK_BATTERY_LEVEL_3100 <= battery_voltage)
     {
       set_led(LED2);
     }
-    
+
     if (PAVLOK_BATTERY_LEVEL_3150 <= battery_voltage)
     {
       set_led(LED3);
     }
-    
+
     if (PAVLOK_BATTERY_LEVEL_3200 <= battery_voltage)
     {
       set_led(LED4);
     }
-    
+
     if (PAVLOK_BATTERY_LEVEL_3250 <= battery_voltage)
     {
       set_led(LED5);
     }
-    
+
     if (PAVLOK_BATTERY_LEVEL_3300 <= battery_voltage)
     {
       clear_led(LED1);
@@ -531,8 +531,8 @@ static void check_charging(bool leds_on, millivoltsBattery_t battery_voltage)
       clear_led(LED4);
       clear_led(LED5);
       set_led(LED_GREEN);
-    }  
-  }    
+    }
+  }
 }
 
 
@@ -558,12 +558,12 @@ TaskHandle_t get_service_thread_handle(void)
 	return m_service_thread;
 }
 
-#ifdef TEST_FLASH      
+#ifdef TEST_FLASH
 static uint8_t kbbTxBuffer[4096] = {0};
 static uint8_t kbbRxBuffer[4096] = {0};
 int send_wrapper = 0;
 uint32_t  fake_address    = 0;
-#endif   
+#endif
 
 
 static void service_task_thread(void * arg)
@@ -573,9 +573,9 @@ static void service_task_thread(void * arg)
 	sPavlokServiceInfo_t	*	p_pavlok_cfg					= pavlok_get_configuration();
 	p_config 																			= pavlok_get_p_service_info(SI_CFG);
   bool                    usb_check             = false;
-			
+
 	DEBUGS_APP_400("SVC_TASK_START");
-	
+
 	/**	--------------------------------------------------------------------
 	**	Do all initialization here
 	**	--------------------------------------------------------------------
@@ -592,23 +592,23 @@ static void service_task_thread(void * arg)
   // defaults for hand detect and button enable
   p_pavlok_cfg->cfg.button_value[0] = (CFG_HAND_DETECT_BTN_LK | CFG_HAND_DETECT_HD_LR);
   p_pavlok_cfg->cfg.button_value[1] = CFG_HAND_DETECT_BP_MOTOR;
-  
+
   // this is a safety call so that the zapper does not already have a charge on it when things get started
   zap_gpio_enable();
 
-#ifdef TEST_FLASH      
+#ifdef TEST_FLASH
 #define TEST_BYTE 0xEE
   for (int counter = 0; counter <  4096; counter++)
   {
     kbbTxBuffer[counter] = TEST_BYTE;
   }
-#endif   
+#endif
 	/**	--------------------------------------------------------------------
 	**	This is the heart of the system
 	**	All reocurring events/triggers are started from this loop
 	**	--------------------------------------------------------------------
 	*/
-  
+
   clear_led(LED1);
   clear_led(LED2);
   clear_led(LED3);
@@ -627,10 +627,10 @@ static void service_task_thread(void * arg)
 		/* Wait for timeout handler to signal */
     (void)ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
-    
-    
-    
-#ifdef TEST_FLASH      
+
+
+
+#ifdef TEST_FLASH
       SERIAL_FLASH_TXRX_RET_T rtn_code = SERIAL_FLASH_BUSY;
       if (fake_address > 0)
       {
@@ -655,12 +655,12 @@ static void service_task_thread(void * arg)
           }
         }
       }
-#endif   
+#endif
 
 #ifdef TEST_FLASH
       {
         //spi2_devices_init();
-      // contract SERIAL_FLASH_TXRX_RET_T spi_flash_start_write_wrapper(uint8_t *data, uint32_t address, uint32_t length); 
+      // contract SERIAL_FLASH_TXRX_RET_T spi_flash_start_write_wrapper(uint8_t *data, uint32_t address, uint32_t length);
       //if (fake_address > 0) {
       if (fake_address < (4096*3)) {
         SEGGER_RTT_WriteString(0, "Calling Write Wrapper\r\n");
@@ -682,13 +682,13 @@ static void service_task_thread(void * arg)
         }
       }
     }
-#endif      
-#ifndef TEST_FLASH	      
+#endif
+#ifndef TEST_FLASH
 //    if (!(rtc_get_time(&testTime))
 //    {
 //      (void)memcpy(&p_config->pavlok_time, &testTime, sizeof(testTime));
 //    }
-    
+
 		if (0 > check_battery_voltage_countdown--)
 		{
       // this updates the notification entry
@@ -709,7 +709,7 @@ static void service_task_thread(void * arg)
         }
       }
 		}
-		
+
       /**	------------------------------------------------------------------
       **	Check to see if any stimuli has completed and if so turn it off
       **	------------------------------------------------------------------
@@ -718,11 +718,11 @@ static void service_task_thread(void * arg)
           && (0 == piezo_action.countdown))
       {
         piezo_action.started	= false;
-        pwm_pizeo_update_duty_and_frequency(0, piezo_action.frequency);
+        pwm_piezo_update_duty_and_frequency(0, piezo_action.frequency);
         piezo_action.state = ACTION_STATE_LAST;
         PAVLOK_LOG_ENTRY(EVT_PIEZO, 0, __LINE__, __FILE__);
       }
-      
+
       if ((true == motor_action.started)
           && (0 == motor_action.countdown))
       {
@@ -731,7 +731,7 @@ static void service_task_thread(void * arg)
         motor_action.state = ACTION_STATE_LAST;
         PAVLOK_LOG_ENTRY(EVT_MOTOR, 0, __LINE__, __FILE__);
       }
-      
+
       if ((TRAINING_STATE_COMPLETE == (pavlok_get_training_started()))
           && (0 == motor_action.countdown)
           && (0 == piezo_action.countdown))
@@ -741,7 +741,7 @@ static void service_task_thread(void * arg)
       }
 
       system_dirty_bit	=	pavlok_get_dirty_bit();
-      
+
       if (SI_LAST_ENTRY != system_dirty_bit)
       {
         DEBUGS_APP_400("system_dirty_bit");
@@ -752,7 +752,7 @@ static void service_task_thread(void * arg)
           {
             // we need type, pointer to cfg, subtype, save , perform, count, DC, FREQ, on/off
             switch (p_pavlok_cfg->cfg.characteristic)
-            {					
+            {
               case CFG_CHAR_MOTOR :
               {
                 if (false == motor_action.started)
@@ -768,7 +768,7 @@ static void service_task_thread(void * arg)
                   }
               }
               break;
-            
+
               case CFG_CHAR_PIEZO :
               {
                 if (false == piezo_action.started)
@@ -783,16 +783,16 @@ static void service_task_thread(void * arg)
                   }
               }
               break;
-              
+
               case CFG_CHAR_ZAP :
               {
                 zap_gpio_disable();
                 /**	--------------------------------------------------------
-                **	There can be up to a half second delay between the 
-                **	command and the zap depending upon the battery charge 
+                **	There can be up to a half second delay between the
+                **	command and the zap depending upon the battery charge
                 **	state
                 **
-                **	At a minimum there is a 320ms delay for 100% zap 
+                **	At a minimum there is a 320ms delay for 100% zap
                 **	with 100% battery
                 **	So with that a complete charge and zap time can be at a
                 **	minimum 640ms with the battery at full charge.
@@ -813,10 +813,10 @@ static void service_task_thread(void * arg)
                 if (false == zap_action.started)
                 {
                   service_task_perform_zap_action(p_pavlok_cfg->cfg.zap_me_value);
-                }							
+                }
               }
               break;
-              
+
               case CFG_CHAR_TIME :
               {
                 // This configuration has already be validated so we alway write it to the rtc
@@ -828,32 +828,32 @@ static void service_task_thread(void * arg)
                 }
               }
               break;
-              
+
               case CFG_CHAR_LED :
-              {						
+              {
                 uint8_t         bit_pattern   = p_pavlok_cfg->cfg.led_value[PLOK_INDEX_COLOR_BYTE_LED];
                 save_data											= (p_pavlok_cfg->cfg.led_value[PLOK_INDEX_CONTROL_BYTE_LED] & PLOK_VB_BYTE_0_SAVE_DATA);
                 perform_action								= (p_pavlok_cfg->cfg.led_value[PLOK_INDEX_CONTROL_BYTE_LED] & PLOK_VB_BYTE_0_PERFORM_ACTION);
                 if (PLOK_VB_BYTE_0_SAVE_DATA == save_data)
                 {
-                    
+
                 }
-            
+
                 if (PLOK_VB_BYTE_0_PERFORM_ACTION == perform_action)
-                {		
+                {
                   uint8_t	action_type = LED_TYPE(p_pavlok_cfg->cfg.led_value[PLOK_INDEX_CONTROL_BYTE_LED]);
                   uint8_t	count				= (p_pavlok_cfg->cfg.led_value[PLOK_INDEX_CONTROL_BYTE_LED] & PLOK_VB_CYCLE_COUNT_MASK);
-                  
+
                   notification_increment_led_count();
                   service_task_start_led_action(action_type, count, bit_pattern);
                 }
               }
-              
+
               case CFG_CHAR_BUTTON :
-              {		
+              {
                 /** ------------------------------------------------------
                 **  states for button pushes
-                **  the button must be allowed thru configration for the 
+                **  the button must be allowed thru configration for the
                 **  following to work
                 **    snooze
                 **    turn off an alarm
@@ -872,19 +872,19 @@ static void service_task_thread(void * arg)
                   notification_increment_button_count();
                   /** ----------------------------------------------------
                   ** PAVLOK_2 Rev 0.1
-                  ** Start the zapper 
+                  ** Start the zapper
                   **------------------------------------------------------
                   */
-                           
+
                   if ((false == zap_action.started)
                       && (PAVLOK_BUTTON_PRESS_1SEC <= * button_time))
                   {
                     sPavlokServiceInfo_t	*	service_info = pavlok_get_configuration();
                     uint8_t                 zap_cfg[2];
-                    
+
                     zap_cfg[0] = PLOK_ZAP_ONCE;
                     zap_cfg[1] = service_info->cfg.zap_me_value[PLOK_INDEX_DC_BYTE_ZAP];
-              
+
                     pavlok_led_bit_pattern((LED_T)PLOK_ZAP_LED_NOTIFY, PLOK_ZAP_NOTIFY_COUNT);
 
                     service_task_perform_zap_action(zap_cfg);
@@ -897,67 +897,67 @@ static void service_task_thread(void * arg)
                       p_pavlok_cfg->cfg.zap_me_value[PLOK_INDEX_DC_BYTE_ZAP] = 50;
                     }
                   }
-                  
+
                   // always reset the button state so that the alarm state does not pick up the wrong time
                   p_pavlok_cfg->cfg.button_value[2] = 0;
                   p_pavlok_cfg->cfg.button_value[3] = 0;
-                  
+
                   // Now look at the button press config to see how we report the button press
                   if ((false == zap_action.started)
                       && (CFG_HAND_DETECT_BP_ZAP == (p_pavlok_cfg->cfg.hand_detect_value[0] & CFG_HAND_DETECT_BP_TYPE)))
                   {
                     sPavlokServiceInfo_t	*	service_info = pavlok_get_configuration();
                     uint8_t                 zap_cfg[2];
-                    
+
                     zap_cfg[PLOK_ZAP_BYTE_0] = PLOK_ZAP_ONCE;
                     zap_cfg[PLOK_INDEX_DC_BYTE_ZAP] = service_info->cfg.zap_me_value[PLOK_INDEX_DC_BYTE_ZAP];
-              
+
                     service_task_perform_zap_action(zap_cfg);
                   }
                   else if (CFG_HAND_DETECT_BP_MOTOR == (p_pavlok_cfg->cfg.hand_detect_value[0] & CFG_HAND_DETECT_BP_TYPE))
                   {
                     sPavlokServiceInfo_t	*	service_info = pavlok_get_configuration();
                     uint8_t                 motor_cfg[PLOK_VALUE_LENGTH_VB_MOTOR];
-                    
+
                     motor_cfg[PLOK_INDEX_CONTROL_BYTE_MOTOR]  = PLOK_MOTOR_ONCE;
                     motor_cfg[PLOK_INDEX_FREQ_BYTE_MOTOR]     = PLOK_MOTOR_DEFAULT_FREQ;
                     motor_cfg[PLOK_INDEX_DC_BYTE_MOTOR]       = PLOK_MOTOR_DEFAULT_DC;
                     motor_cfg[PLOK_INDEX_ONTIME_BYTE_MOTOR]   = PLOK_MOTOR_DEFAULT_TIME;
                     motor_cfg[PLOK_INDEX_OFFTIME_BYTE_MOTOR]  = PLOK_MOTOR_DEFAULT_TIME;
-              
+
                     service_task_perform_motor_action(motor_cfg);
-                  } 
+                  }
                   else if (CFG_HAND_DETECT_BP_PIEZO == (p_pavlok_cfg->cfg.hand_detect_value[0] & CFG_HAND_DETECT_BP_TYPE))
                   {
                     sPavlokServiceInfo_t	*	service_info = pavlok_get_configuration();
                     uint8_t                 piezo_cfg[PLOK_VALUE_LENGTH_VB_MOTOR];
-                    
+
                     piezo_cfg[PLOK_INDEX_CONTROL_BYTE_PIEZO]  = PLOK_PIEZO_ONCE;
                     piezo_cfg[PLOK_INDEX_FREQ_BYTE_PIEZO]     = PLOK_PIEZO_DEFAULT_FREQ;
                     piezo_cfg[PLOK_INDEX_DC_BYTE_PIEZO]       = PLOK_PIEZO_DEFAULT_DC;
                     piezo_cfg[PLOK_INDEX_ONTIME_BYTE_PIEZO]   = PLOK_PIEZO_DEFAULT_TIME;
                     piezo_cfg[PLOK_INDEX_OFFTIME_BYTE_PIEZO]  = PLOK_PIEZO_DEFAULT_TIME;
-              
+
                     service_task_perform_motor_action(piezo_cfg);
-                  } 
-                }               
+                  }
+                }
               }
-                          
+
               default :
               {
               }
               break;
             } // eos
-                
+
           if (0 != save_data)
-          {				
+          {
             // wrtie data to configuration table
             DEBUGS_APP_400("Save Characteristic");
           }
-          
+
           pavlok_clear_dirty_bit();
         } // eoc SI_CFG
-        break;							
+        break;
         } // eos
       }
 #endif
@@ -979,14 +979,14 @@ void service_task_perform_piezo_action(uint8_t * piezo_cfg)
     piezo_action.countdown = piezo_action.total_count;
 
     // start the actual action
-    if (!(pwm_pizeo_update_duty_and_frequency(piezo_action.duty_cycle, piezo_action.frequency)))
+    if (!(pwm_piezo_update_duty_and_frequency(piezo_action.duty_cycle, piezo_action.frequency)))
     {
       notification_increment_piezo_count();
       piezo_action.state = ACTION_STATE_ON;
       piezo_action.started	= true;
       perform_action_timers_start();
-    }				
-  }  
+    }
+  }
 }
 
 void service_task_perform_motor_action(uint8_t * motor_cfg)
@@ -1009,8 +1009,8 @@ void service_task_perform_motor_action(uint8_t * motor_cfg)
       motor_action.started	= true;
       notification_increment_motor_count();
       perform_action_timers_start();
-    }		
-  }  
+    }
+  }
 }
 
 void service_task_perform_zap_action(uint8_t * zap_cfg)
@@ -1021,9 +1021,9 @@ void service_task_perform_zap_action(uint8_t * zap_cfg)
 	  SEGGER_RTT_printf(0, "%d\r\n", zap_cfg[1]);
     zap_value /= 10;
     zap_value *= 51;
-    
-    // convert it to the needed zapper value 
-    
+
+    // convert it to the needed zapper value
+
     zap_action.duty_cycle			= zap_value;
     zap_action.zap_on				  = PLOK_400_MS;
     zap_action.zap_off				= PLOK_1_SEC;
@@ -1032,7 +1032,7 @@ void service_task_perform_zap_action(uint8_t * zap_cfg)
     notification_increment_zap_count();
 
   //  PAVLOK_LOG_ENTRY(EVT_ZAP, 0, 0, 0, 0);
-                  
+
     // start the actual action
     charge_zapper();
     zap_action.started	= true;
@@ -1047,8 +1047,8 @@ void service_task_perform_led_action(uint8_t * led_cfg)
 // REMOVED  if (ACTION_STATE_ON != led_action.state)
   {
     notification_increment_led_count();
-    pavlok_led_bit_pattern((LED_T)led_cfg[0], 2);		
-  }		
+    pavlok_led_bit_pattern((LED_T)led_cfg[0], 2);
+  }
 }
 
 
@@ -1097,7 +1097,7 @@ void service_action_state_set(eCFG_CHAR_LIST stimulas, eAction_state_t state)
 uint32_t		service_action_state_get(eCFG_CHAR_LIST stimulas)
 {
 	uint32_t	rtn_code = CFG_CHAR_LAST;
-	
+
 	if (CFG_CHAR_MOTOR == stimulas)
 	{
 		rtn_code = (uint32_t)motor_action.state;
@@ -1110,7 +1110,7 @@ uint32_t		service_action_state_get(eCFG_CHAR_LIST stimulas)
 	{
 		rtn_code = (uint32_t)zap_action.state;
 	}
-	
+
 	return rtn_code;
 }
 

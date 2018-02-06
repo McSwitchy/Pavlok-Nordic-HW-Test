@@ -1,2 +1,6 @@
 pavlok_2/pca10040/s132/arm5_no_packs/PAVLOK_S.uvguix.samretina
 pavlok_2/pca10040/s132/arm5_no_packs/PAVLOK_S.uvguix.walkAbout7
+pavlok_2/_build
+nonrepo_/
+*.map
+*.hex

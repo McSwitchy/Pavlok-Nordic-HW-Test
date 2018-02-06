@@ -2,17 +2,17 @@
 **
 **	@file
 **
-**  @defgroup 
+**  @defgroup
 **  @{
-**  @ingroup 
+**  @ingroup
 **  @brief Alert Notification module.
-**  
-**  @details This module implements 
-**  
-**  @note The application must 
-**  
+**
+**  @details This module implements
+**
+**  @note The application must
+**
 **  @note Attention!
-**   
+**
 **
 **	----------------------------------------------------------------------
 */
@@ -41,9 +41,9 @@
 #include "boards.h"
 #include "softdevice_handler.h"
 #include "app_timer.h"
-#include "peer_manager.h"
+// #include "peer_manager.h"
 #include "bsp.h"
-#include "bsp_btn_ble.h"
+// #include "bsp_btn_ble.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -80,10 +80,10 @@
 	WD,			// window
 	WI,			// window interval
 	SN,			// snooze enable
-	TM,			// time 
+	TM,			// time
 */
 
-typedef struct 
+typedef struct
 {
 	int8_t seconds;
 	int8_t minutes;

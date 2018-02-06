@@ -169,7 +169,7 @@ typedef enum
   eFlashSleep,
   eFlashLog,
   eFlashLast
-  
+
 } eFlashAreaName_t;
 
 /**	----------------------------------------------------------------------
@@ -325,7 +325,7 @@ typedef enum
 
 #define PLOK_PWM_FREQ_STEP_VALUE				(500)
 
-#define UPPER_NIBBLE(b)									(((b) >> 4) & 0x0F)			
+#define UPPER_NIBBLE(b)									(((b) >> 4) & 0x0F)
 #define LOWER_NIBBLE(b)									((b) & 0x0F)
 
 /// @def PLOK_TIME_BETWEEN_STIMULI is used to gate the alarm stimulus patterns
@@ -427,7 +427,7 @@ typedef enum
 	eCFG_CHAR_BTN_PUSH_UUID								= (eCFG_SVC_UUID + 7),
 	eCFG_CHAR_ALM_CTL_UUID								= (eCFG_SVC_UUID + 8),
 	eCFG_CHAR_DR_UUID								      = (eCFG_SVC_UUID + 9),
-	
+
 	eNOTIFICATION_SVC_UUID								= 0x2000,
 	eNOTIFICATION_CHAR_TIME_UUID					= (eNOTIFICATION_SVC_UUID + 1),
 	eNOTIFICATION_CHAR_LOG_CNT_UUID				= (eNOTIFICATION_SVC_UUID + 2),
@@ -439,27 +439,26 @@ typedef enum
 	eNOTIFICATION_CHAR_LED_UUID						= (eNOTIFICATION_SVC_UUID + 8),
 	eNOTIFICATION_CHAR_SLEEP_DATA_UUID		= (eNOTIFICATION_SVC_UUID + 9),
 	eNOTIFICATION_CHAR_ALARM_TIME_UUID		= (eNOTIFICATION_SVC_UUID + 10),
-	
+
 	eLOG_SVC_UUID													= 0x3000,
 	eLOG_CHAR_CMD													= (eLOG_SVC_UUID + 1),
 	eLOG_CHAR_DATA												= (eLOG_SVC_UUID + 2),
 
-	
 	eTRAINING_SVC_UUID										= 0x4000,
 	eTRAINING_CHAR_READ_DATA_UUID					= (eTRAINING_SVC_UUID + 1),
 	eTRAINING_CHAR_CONTROL_UUID				    = (eTRAINING_SVC_UUID + 2),
-	
+
 	eAPP_SVC_UUID													= 0x5000,
 	eAPP_CHAR_CONTROL_UUID								= (eAPP_SVC_UUID + 1),
 	eAPP_CHAR_DOWNLOAD_UUID								= (eAPP_SVC_UUID + 2),
 	eAPP_CHAR_ALARM_NOTIFY_UUID					  = (eAPP_SVC_UUID + 3),
 	eAPP_CHAR_SNOOZE_NOTIFY_UUID					= (eAPP_SVC_UUID + 4),
 	eAPP_CHAR_ALARM_DISABLE_NOTIFY_UUID		= (eAPP_SVC_UUID + 5),
-	
+
 	eOTA_SVC_UUID													= 0x6000,
 	eOTA_CHAR_APP_UUID										= (eOTA_SVC_UUID + 1),
 	eOTA_CHAR_FIRMWARE_UUID								= (eOTA_SVC_UUID + 2)
-	
+
 } ePLOK_SERVICE_CHAR_UUIDS;
 
 
@@ -487,8 +486,8 @@ typedef enum
 	APPSVC_CHAR_ALARM_TRIGGERED,
 	APPSVC_CHAR_SNOOZE_SET,
 	APPSVC_CHAR_ALARM_DISABLED,
-  
-  
+
+
 	APPSVC_CHAR_LAST
 } eAPPSVC_CHAR_LIST;
 
@@ -498,15 +497,15 @@ typedef struct
 	bool	piezo;
 	bool	motor;
 	bool	zap;
-	
+
 } sStimuliStart_t;
 
 
-typedef struct Node 
+typedef struct Node
 {
 	uint8_t     * entry;
   struct Node * next;
-  
+
 } sNode_t;
 
 typedef enum
@@ -517,9 +516,9 @@ typedef enum
   APP_CONTROL_SNOOZE,     // snoozes the current alarm if allowed in the app
   APP_CONTROL_ALARM,      // stops the current alarm if allowed in the app
   APP_CONTROL_LIST,       // sends back to the phone the list of apps stored on the phone at 100ms interval
-	
+
 	APP_CONTROL_LAST
-	
+
 } eAppControl_t;
 
 
@@ -564,7 +563,7 @@ typedef struct
 	bool		double_tap;					// false = zap strength increment, true = record urge by user
 	uint8_t	hand_detect_stimulus;
 	uint8_t	bp_stimulus;				// TODO what is bp
-	
+
 } sAccelSvcInfo_t;
 #endif
 
@@ -586,7 +585,7 @@ typedef enum
 	TRAINING_STATE_INACTIVE,
 	TRAINING_STATE_ACTIVE,
 	TRAINING_STATE_COMPLETE
-	
+
 } eTrainingState_t;
 
 typedef enum
@@ -597,9 +596,9 @@ typedef enum
 	LED_PATTERN_FLASH_ALL,
 	LED_PATTERN_REWARD,
 	LED_PATTERN_WARNING,
-	
+
 	LED_LAST_PATTERN
-	
+
 } eLed_action_t;
 
 typedef enum
@@ -610,9 +609,9 @@ typedef enum
 	SI_LOG_INFO,
 	SI_OTA,
 	SI_DEVICE_CONTROL,
-  SI_APP_INFO, 
+  SI_APP_INFO,
 	SI_LAST_ENTRY
-	
+
 } eServiceInfo_t;
 
 
@@ -633,7 +632,7 @@ typedef enum
 typedef struct
 {
 	eCFG_CHAR_LIST	characteristic;
-	
+
 	uint8_t	motor_value[PLOK_VALUE_LENGTH_VB_MOTOR];
 	uint8_t	piezo_value[PLOK_VALUE_LENGTH_PIEZO];
 	uint8_t	zap_me_value[PLOK_VALUE_LENGTH_ZAP];
@@ -642,7 +641,7 @@ typedef struct
 	uint8_t	button_value[PLOK_VALUE_LENGTH_BUTTON];
 	sTime_t	pavlok_time;
 // TODO REMOVE	uint8_t	hour_format;
-  
+
 } sCfg_service_t;
 
 typedef struct
@@ -650,7 +649,7 @@ typedef struct
   char *      name;
   uint16_t    length;
   uint32_t    flash_address;
-  
+
 } sAppInfo_t;
 
 
@@ -659,7 +658,7 @@ typedef struct
   sNode_t * list;
   char    * current;
   uint8_t   count;
-  
+
 } sAppDesc_t;
 
 typedef struct
@@ -693,7 +692,7 @@ typedef struct
 	char				tag[2];
 	uint16_t		length;
 	uint8_t		*	value;
-	
+
 } sTlv_t;
 
 /*------------------------------------------------------------------------

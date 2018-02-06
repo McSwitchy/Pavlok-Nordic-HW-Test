@@ -6,9 +6,9 @@
 **  @{
 **  @ingroup 	I2C
 **  @brief port zero for the i2c bus.
-**  
-**  @details These module implements the nRF52 i2c interface 
-**  
+**
+**  @details These module implements the nRF52 i2c interface
+**
 **
 **	----------------------------------------------------------------------
 */
@@ -105,7 +105,7 @@ void i2c_devices_init(void);
 **	@brief	Description		data write for i2c0 bus
 **
 **	@param	[in]					uint8_t devAddr - bus device address
-**	@param	[in]					uint8_t *data	- pointer to the write data 
+**	@param	[in]					uint8_t *data	- pointer to the write data
 **	@param	[in]					uint8_t length	- write length in bytes
 **
 **	@param	[out]					None
@@ -125,7 +125,7 @@ ret_code_t i2c0_sync_write(uint8_t, uint8_t *, uint8_t);
 **	@brief	Description		data read/write for i2c0 bus
 **
 **	@param	[in]					uint8_t devAddr - bus device address
-**	@param	[in]					uint8_t *data	- pointer to the read buffer 
+**	@param	[in]					uint8_t *data	- pointer to the read buffer
 **	@param	[in]					uint8_t length	- read length in bytes
 **
 **	@param	[out]					None
@@ -148,7 +148,7 @@ ret_code_t i2c0_sync_read(uint8_t, uint8_t *, uint8_t, uint8_t *, uint8_t);
 **	@brief	Description		data write for i2c0 bus
 **
 **	@param	[in]					uint8_t devAddr - bus device address
-**	@param	[in]					uint8_t *data	- pointer to the write data 
+**	@param	[in]					uint8_t *data	- pointer to the write data
 **	@param	[in]					uint8_t length	- write length in bytes
 **
 **	@param	[out]					None
@@ -168,7 +168,7 @@ ret_code_t i2c1_sync_write(uint8_t, uint8_t *, uint8_t);
 **	@brief	Description		data read/write for i2c0 bus
 **
 **	@param	[in]					uint8_t devAddr - bus device address
-**	@param	[in]					uint8_t *data	- pointer to the read buffer 
+**	@param	[in]					uint8_t *data	- pointer to the read buffer
 **	@param	[in]					uint8_t length	- read length in bytes
 **
 **	@param	[out]					None
@@ -183,6 +183,9 @@ ret_code_t i2c1_sync_write(uint8_t, uint8_t *, uint8_t);
 **	----------------------------------------------------------------------
 */
 ret_code_t i2c1_sync_read(uint8_t, uint8_t *, uint8_t, uint8_t *, uint8_t);
+
+extern int i2c_scan(int bus, uint8_t * buffer, int buf_len);
+
 
 #endif /* _I2C_H */
 /** @} */

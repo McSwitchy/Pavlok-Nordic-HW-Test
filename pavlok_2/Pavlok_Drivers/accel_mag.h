@@ -6,13 +6,13 @@
 **  @{
 **  @ingroup 		accelerometer
 **  @brief accelerometer driver module.
-**  
+**
 **  @details This module implements the PAVLOK accelerometer driver code
-**  
+**
 **  @note
-**  
+**
 **  @note
-**   
+**
 **
 **	----------------------------------------------------------------------
 */
@@ -34,7 +34,7 @@
 **	@brief	Global Data
 **	----------------------------------------------------------------------
 */
-uint8_t accelerometer_whoami(void);
+int accelerometer_whoami(uint8_t);
 extern volatile uint8_t demoSemaphore1;
 extern volatile uint8_t demoSemaphore2;
 
@@ -72,17 +72,17 @@ extern volatile uint8_t demoSemaphore2;
 #define DK_TRANSIENT_DEMO											(0)
 #define DK_PULSE_DEMO													(0)
 #if (DK_CONT_READ_DEMO && (DK_CONT_TRANSIENT_DEMO || DK_PULSE_DEMO))
-#error "Cannot enable both demos!
+#error "Cannot enable both demos!"
 #endif
 
 // Objects
-typedef struct 
+typedef struct
 {
 	uint8_t address;
 	uint8_t data[I2C_ACC_MAG_MAX_TRANSFER];
 } accmagTXRXPacket_T;
 
-typedef struct 
+typedef struct
 {
 	int16_t x;
 	int16_t y;
@@ -91,24 +91,24 @@ typedef struct
 
 // Enumerations
 
-typedef enum 
+typedef enum
 {
 	ACC_MAG_INIT_SUCCESS,
 	ACC_MAG_INIT_FAIL
 } ACC_MAG_INIT_RET_T;
 
-typedef enum 
+typedef enum
 {
 	ACC_MAG_SUCCESS,
 	ACC_MAG_NULL_DATA,
 	ACC_MAG_INVALID_ADDRESS,
 	ACC_MAG_INVALID_SIZE,
-	ACC_MAG_TX_ERROR		
+	ACC_MAG_TX_ERROR
 } ACC_MAG_TXRX_RET_T;
 
-// Prototypes	
+// Prototypes
 ACC_MAG_TXRX_RET_T accel_magnet_write(uint8_t, uint8_t *, uint8_t);
-ACC_MAG_TXRX_RET_T accel_magnet_read(uint8_t, uint8_t *, uint8_t);
+ACC_MAG_TXRX_RET_T accel_magnet_read(uint8_t, uint8_t, uint8_t *, uint8_t);
 ACC_MAG_INIT_RET_T accelerometer_init(void);
 ACC_MAG_TXRX_RET_T get_acceleration(ACCEL_DATA_T *accelData);
 ACC_MAG_TXRX_RET_T accel_mag_unlatch_int1(void);
@@ -121,7 +121,6 @@ ACC_MAG_INIT_RET_T accel_main_init(void);
 void accelerometer_init_continuouse_read(void);
 void accelerometer_init_pulse(void);
 void accelerometer_init_transient(void);
-uint8_t accelerometer_whoami(void);
 
 /** ----------------------------------------------------------------------
 **	@def	FXOS8700CQ internal register addresses
@@ -167,7 +166,7 @@ uint8_t accelerometer_whoami(void);
 
 #define CTRL_REG1_INOISE_SHIFT								2
 #define CTRL_REG1_INOISE_MASK									0x04
-#define CTRL_REG1_INOISE(x)										(((uint8_t)(((uint8_t)(x))<<CTRL_REG1_INOISE_SHIFT))&CTRL_REG1_INOISE_MASK)				
+#define CTRL_REG1_INOISE(x)										(((uint8_t)(((uint8_t)(x))<<CTRL_REG1_INOISE_SHIFT))&CTRL_REG1_INOISE_MASK)
 
 #define CTRL_REG1_DR_SHIFT										3
 #define CTRL_REG1_DR_MASK											0x38
@@ -187,7 +186,7 @@ uint8_t accelerometer_whoami(void);
 
 #define XZY_DATA_CFG_HPF_OUT_SHIFT						4
 #define XZY_DATA_CFG_HPF_OUT_MASK							0x10
-#define XZY_DATA_CFG_HPF_OUT(x)								(((uint8_t)(((uint8_t)(x))<<XZY_DATA_CFG_HPF_OUT_SHIFT))&XZY_DATA_CFG_HPF_OUT_MASK)	
+#define XZY_DATA_CFG_HPF_OUT(x)								(((uint8_t)(((uint8_t)(x))<<XZY_DATA_CFG_HPF_OUT_SHIFT))&XZY_DATA_CFG_HPF_OUT_MASK)
 
 /** ----------------------------------------------------------------------
 **	@def	FXOS8700CQ M_CTRL_REG1 macros
@@ -512,7 +511,7 @@ uint8_t accelerometer_whoami(void);
 #define PULSE_WIND_SHIFT											0
 #define PULSE_WIND_MASK												0xFF
 #define PULSE_WIND(x)													(((uint8_t)(((uint8_t)(x))<<PULSE_WIND_SHIFT))&PULSE_WIND_MASK)
- 
+
 #define PULSE_SOURCE_SRC_POLX									(uint8_t)(1<<0)
 #define PULSE_SOURCE_SRC_POLY									(uint8_t)(1<<1)
 #define PULSE_SOURCE_SRC_POLZ									(uint8_t)(1<<2)
@@ -520,7 +519,7 @@ uint8_t accelerometer_whoami(void);
 #define PULSE_SOURCE_SRC_AXX									(uint8_t)(1<<4)
 #define PULSE_SOURCE_SRC_AXY									(uint8_t)(1<<5)
 #define PULSE_SOURCE_SRC_AXZ									(uint8_t)(1<<6)
-#define PULSE_SOURCE_SRC_EA										(uint8_t)(1<<7)	
+#define PULSE_SOURCE_SRC_EA										(uint8_t)(1<<7)
 
 #define IS_PULSE_SOURCE_TRUE(x, y)						(uint8_t)(x & y)
 
@@ -535,8 +534,8 @@ uint8_t accelerometer_whoami(void);
 #define INT_SOURCE_SRC_LNDPRT									(uint8_t)(1<<4)
 #define INT_SOURCE_SRC_TRANS									(uint8_t)(1<<5)
 #define INT_SOURCE_SRC_FIFO										(uint8_t)(1<<6)
-#define INT_SOURCE_SRC_ASLP										(uint8_t)(1<<7)	
+#define INT_SOURCE_SRC_ASLP										(uint8_t)(1<<7)
 
-#define IS_INT_SOURCE_TRUE(x, y)							(uint8_t)(x & y)		
+#define IS_INT_SOURCE_TRUE(x, y)							(uint8_t)(x & y)
 
 #endif

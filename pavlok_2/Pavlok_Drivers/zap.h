@@ -3,11 +3,11 @@
 **	@file
 **
 **  @brief Description
-**  
-**  @details This module implements 
-**  
-**  @note The application must 
-**  
+**
+**  @details This module implements
+**
+**  @note The application must
+**
 **  @note Attention!
 **
 **------------------------------------------------------------------------
@@ -49,11 +49,13 @@
 */
 typedef uint16_t millivoltsBattery_t;
 typedef uint16_t voltsZap_t;
+typedef uint16_t voltsUsb_t;
 
 // With the voltage divider of 1500 ohms and 3500 ohms, the ratio is 1.5
 #define BATT_MILLIVOLTS_RESISTOR_RATIO(x)		(millivoltsBattery_t)((x*3)/2)
 // With the voltage divider of 68K ohms and 10M ohms, the ratio is ~148
-#define ZAP_VOLTS_RESISTOR_RATIO(x)				(voltsZap_t)((x/1000.0)*148)
+#define ZAP_VOLTS_RESISTOR_RATIO(x)             (voltsZap_t)((x/1000.0)*148)
+#define USB_VOLTS_RESISTOR_RATIO(x)				(voltsUsb_t)((x*1))
 
 /** ----------------------------------------------------------------------
 **  @brief  The max value on the HVMON is ~x200-x20a (512d)

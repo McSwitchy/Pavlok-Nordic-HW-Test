@@ -2,19 +2,19 @@
 **
 **	@file
 **
-**  @defgroup 
+**  @defgroup
 **  @{
-**  @ingroup 
+**  @ingroup
 **  @brief Alert Notification module.
-**  
-**  @details This module implements 
-**  
-**  @note The application must 
-**  
+**
+**  @details This module implements
+**
+**  @note The application must
+**
 **  @note Attention! TODO get nrf_delays out of LED functions
 **                    TODO must put locks around stimulus during app alarms
 **                    TODO move LED function s to service task
-**   
+**
 **
 **------------------------------------------------------------------------
 */
@@ -60,13 +60,13 @@ const ble_uuid128_t     base_uuid128 = PAVLOK_BASE_UUID;
 
 static	bool									pavlok_configuration_is_dirty = false;
 static 	sPavlokServiceInfo_t 	service_info;
-uint8_t __align(8) g_pavlok_scratch_pad[32];
+uint8_t __attribute__((aligned(8))) g_pavlok_scratch_pad[32];
 
 size_t pavlok_strnlen (const char* s, size_t maxlen)
 {
 	size_t len = 0;
 
-	while ((len <= maxlen) && (*s != NULL))
+	while ((len <= maxlen) && (*s != '\0'))
 	{
 		s++;
 		len++;
@@ -157,7 +157,7 @@ void pavlok_encode(uint8_t * value, uint8_t * p_encoded_buffer, uint8_t length)
             {
                 p_encoded_buffer[loopCounter] = value[loopCounter];
             }
-						
+
         }
         break;
     } // eos
@@ -219,7 +219,7 @@ BaseType_t pavlok_common_start_task (TaskHandle_t  * m_thread, taskName_t tName,
 void * pavlok_get_p_service_info(eServiceInfo_t service)
 {
 	void * p_rtn = NULL;
-	
+
 	switch (service)
 	{
 		case SI_NOTIFY :
@@ -227,19 +227,19 @@ void * pavlok_get_p_service_info(eServiceInfo_t service)
 			p_rtn = &service_info.notify;
 		}
 		break;
-		
+
 		case SI_CFG :
 		{
 			p_rtn = &service_info.cfg;
 		}
 		break;
-		
+
 		case SI_APP_INFO :
 		{
 			p_rtn = &service_info.applications;
 		}
 		break;
-		
+
 		default :
 		{
 			ASSERT(0==1);
@@ -272,13 +272,13 @@ void pavlok_set_dirty_bit(eServiceInfo_t service, void * service_object)
 {
 	uint8_t 					* p_service 	= NULL;
 	uint8_t							object_size = 0;
-	
+
 	switch (service)
 	{
 		case SI_CFG :
 		{
 			DEBUGI_APP_400("object_type", service_info.cfg.characteristic);
-			
+
 			if (CFG_CHAR_MOTOR == service_info.cfg.characteristic)
 			{
 				p_service	= (uint8_t *)&service_info.cfg.motor_value;
@@ -309,33 +309,33 @@ void pavlok_set_dirty_bit(eServiceInfo_t service, void * service_object)
 				p_service	= (uint8_t *)&service_info.cfg.button_value;
 				object_size = PLOK_VALUE_LENGTH_BUTTON;
 			}
-			else 
+			else
 			{
 				ASSERT(0==1);
 			}
 			(void)memcpy(p_service, service_object, object_size);
 		}
 		break;
-#ifdef REMOVED		
+#ifdef REMOVED
 		case SI_RTC :
 		{
 			(void)memcpy((uint8_t *)&service_info.rtc, (uint8_t *)service_object, sizeof(sRtcInfo_t));
 		}
 		break;
-		
+
 		case SI_ACCEL :
 		{
 			(void)memcpy((uint8_t *)&service_info.accel, (uint8_t *)service_object, sizeof(sAccelSvcInfo_t));
 		}
 		break;
-#endif		
+#endif
 		default :
 		{
 			ASSERT(0==1);
 		}
 		break;
 	} // eos
-	
+
 	service_info.last_service = service;
 	pavlok_configuration_is_dirty	= true;
 	pavlok_restart_service_task();
@@ -362,7 +362,7 @@ void pavlok_set_dirty_bit(eServiceInfo_t service, void * service_object)
 eServiceInfo_t pavlok_get_dirty_bit(void)
 {
 	eServiceInfo_t	rtn_type	= SI_LAST_ENTRY;
-	
+
 	if (true == pavlok_configuration_is_dirty)
 	{
 		rtn_type = service_info.last_service;
@@ -470,12 +470,12 @@ uint32_t pavlok_button_normalize(uint32_t m_button_time)
 void pavlok_led_clear_all(void)
 {
 	int8_t	loop_counter 	= 0;
-	
-	for (loop_counter = 0; loop_counter < (uint8_t)NUM_OF_LEDS; loop_counter++) 
+
+	for (loop_counter = 0; loop_counter < (uint8_t)NUM_OF_LEDS; loop_counter++)
 	{
 		clear_led((LED_T)loop_counter);
 	}
-}	
+}
 
 #define PAVLOK_LED_BLINK_MASK (0x80)
 
@@ -485,14 +485,14 @@ void pavlok_led_bit_pattern(LED_T pattern, uint8_t count)
 	int8_t	led_counter 	= 0;
 	int8_t	loop_counter 	= 0;
 	int8_t	bit						= 7;
-	
+
 	pavlok_led_clear_all();
-	
+
 	for (loop_counter = 0; loop_counter < count; loop_counter++)
 	{
 		bit = 7;
-		for (led_counter = 0x40; led_counter > 0; led_counter >>= 1) 
-		{		
+		for (led_counter = 0x40; led_counter > 0; led_counter >>= 1)
+		{
 			bit_mask = ((uint8_t)pattern & led_counter);
 			if (0 != bit_mask)
 			{
@@ -500,29 +500,29 @@ void pavlok_led_bit_pattern(LED_T pattern, uint8_t count)
 			}
 			bit -= 1;
 		}
-		
-		nrf_delay_ms(100);	
-		
+
+		nrf_delay_ms(100);
+
 		if (0 == (PAVLOK_LED_BLINK_MASK & pattern))
 		{
-			nrf_delay_ms(150);		
+			nrf_delay_ms(150);
 			break;
 		}
-		
+
 		pavlok_led_clear_all();
-		nrf_delay_ms(100);					
+		nrf_delay_ms(100);
 	}
 	pavlok_led_clear_all();
-}	
+}
 
 
-void pavlok_led_lightning_down(uint8_t count) 
+void pavlok_led_lightning_down(uint8_t count)
 {
 	int8_t	loop_counter = 0;
 	int8_t flash_counter = 0;
-	
+
 	pavlok_led_clear_all();
-	
+
 	for (flash_counter = 0; flash_counter < count; flash_counter ++)
 	{
 		for (loop_counter = 0; loop_counter < 5; loop_counter++)
@@ -530,19 +530,19 @@ void pavlok_led_lightning_down(uint8_t count)
 			set_led((LED_T)loop_counter);
 			nrf_delay_ms(50);
 		}
-			
+
 		nrf_delay_ms(50);
 		pavlok_led_clear_all();
 	}
 }
 
-void pavlok_led_lightning_up(uint8_t count) 
+void pavlok_led_lightning_up(uint8_t count)
 {
 	int8_t	loop_counter = 0;
 	int8_t flash_counter = 0;
-	
+
 	pavlok_led_clear_all();
-	
+
 	for (flash_counter = 0; flash_counter < count; flash_counter ++)
 	{
 		for (loop_counter = 4; loop_counter >= 0; loop_counter--)
@@ -550,9 +550,9 @@ void pavlok_led_lightning_up(uint8_t count)
 			set_led((LED_T)loop_counter);
 			nrf_delay_ms(50);
 		}
-			
+
 		nrf_delay_ms(50);
-		
+
 		// Turn off all LEDS
 		pavlok_led_clear_all();
 	}
@@ -566,17 +566,17 @@ void pavlok_led_reward_pattern(void)
 	nrf_delay_ms(100);
 	pavlok_led_lightning_up(1);
 	nrf_delay_ms(100);
-	
+
 	pavlok_led_clear_all();
-	
-	for (loop_counter = 0; loop_counter < 3; loop_counter++) 
+
+	for (loop_counter = 0; loop_counter < 3; loop_counter++)
 	{
 		set_led(LED_GREEN);
 		nrf_delay_ms(200);
 		clear_led(LED_GREEN);
 		nrf_delay_ms(200);
 	}
-	
+
 }
 
 void pavlok_led_warning_pattern(void)
@@ -585,7 +585,7 @@ void pavlok_led_warning_pattern(void)
 
 	pavlok_led_clear_all();
 
-	for (loop_counter = 0; loop_counter < 2; loop_counter++) 
+	for (loop_counter = 0; loop_counter < 2; loop_counter++)
 	{
 		set_led(LED1);
 		set_led(LED2);
@@ -596,8 +596,8 @@ void pavlok_led_warning_pattern(void)
 		pavlok_led_clear_all();
 		nrf_delay_ms(200);
 	}
-		
-	for (loop_counter = 0; loop_counter < 3; loop_counter++) 
+
+	for (loop_counter = 0; loop_counter < 3; loop_counter++)
 	{
 		set_led(LED_RED);
 		nrf_delay_ms(200);
@@ -610,7 +610,7 @@ void pavlok_led_flash_all(uint8_t count)
 {
 	int8_t	loop_counter 	= 0;
 
-	for (loop_counter = 0; loop_counter < count; loop_counter++) 
+	for (loop_counter = 0; loop_counter < count; loop_counter++)
 	{
 		pavlok_led_clear_all();
 		nrf_delay_ms(200);
@@ -623,7 +623,7 @@ void pavlok_led_flash_all(uint8_t count)
 		set_led(LED7);
 		nrf_delay_ms(200);
 	}
-		
+
 	pavlok_led_clear_all();
 }
 
@@ -631,14 +631,14 @@ void pavlok_led_error(void)
 {
 	int8_t	loop_counter 	= 0;
 
-	for (loop_counter = 0; loop_counter < 5; loop_counter++) 
+	for (loop_counter = 0; loop_counter < 5; loop_counter++)
 	{
 		pavlok_led_clear_all();
 		nrf_delay_ms(200);
 		set_led(LED_RED);
 		nrf_delay_ms(200);
 	}
-		
+
 	pavlok_led_clear_all();
 }
 
@@ -647,13 +647,13 @@ void pavlok_set_stimulus_on(sNode_t * stimulus)
   uint8_t * p_config    = NULL;
   uint8_t   length      = stimulus->entry[PAVLOK_TLV_TAG_SIZE];
   p_config              = (uint8_t *)(&stimulus->entry[PAVLOK_TLV_TAG_LENGTH_SIZE] + length);
-  
+
 	if ('P' == stimulus->entry[0])
 	{
     /** ------------------------------------------------------------------
     **  Stimulus chan change thru the configuration service after an
     **  application has started
-    **  So we need to resetup the configuration structure for the 
+    **  So we need to resetup the configuration structure for the
     **  next stimulus pattern
     **  The actual configuration is at the END of the app data part
     **  So we index to the end and count back the sizeof the config
@@ -672,7 +672,7 @@ void pavlok_set_stimulus_on(sNode_t * stimulus)
     /** ------------------------------------------------------------------
     **  Stimulus chan change thru the configuration service after an
     **  application has started
-    **  So we need to resetup the configuration structure for the 
+    **  So we need to resetup the configuration structure for the
     **  next stimulus pattern
     **  ------------------------------------------------------------------
     */
@@ -689,7 +689,7 @@ void pavlok_set_stimulus_on(sNode_t * stimulus)
     /** ------------------------------------------------------------------
     **  Stimulus chan change thru the configuration service after an
     **  application has started
-    **  So we need to resetup the configuration structure for the 
+    **  So we need to resetup the configuration structure for the
     **  next stimulus pattern
     **  ------------------------------------------------------------------
     */
@@ -703,7 +703,7 @@ void pavlok_set_stimulus_on(sNode_t * stimulus)
     /** ------------------------------------------------------------------
     **  Stimulus chan change thru the configuration service after an
     **  application has started
-    **  So we need to resetup the configuration structure for the 
+    **  So we need to resetup the configuration structure for the
     **  next stimulus pattern
     **  ------------------------------------------------------------------
     */
@@ -715,7 +715,7 @@ void pavlok_set_stimulus_on(sNode_t * stimulus)
     service_info.cfg.led_value[4] = p_config[PLOK_INDEX_OFFTIME_BYTE_LED];
     service_task_perform_led_action(service_info.cfg.led_value);
 	}
-	else 
+	else
 	{
 		// TODO log error
 	}
@@ -729,14 +729,14 @@ void pavlok_training_notifiy_user(void)
 	service_info.cfg.piezo_value[3] = PLOK_250_MS;
 	service_info.cfg.piezo_value[4] = PLOK_100_MS;
 	service_task_perform_piezo_action(service_info.cfg.piezo_value);
-	
+
 	service_info.cfg.motor_value[0] = (PLOK_MOTOR_PERFORM_BIT | PLOK_MOTOR_COUNT_VALUE(3));
 	service_info.cfg.motor_value[1] = (3500 / PLOK_PWM_FREQ_STEP_VALUE);
 	service_info.cfg.motor_value[2] = 50;
 	service_info.cfg.motor_value[3] = PLOK_100_MS;
 	service_info.cfg.motor_value[4] = PLOK_100_MS;
 	service_task_perform_piezo_action(service_info.cfg.motor_value);
-	
+
 	return;
 }
 
@@ -760,14 +760,14 @@ void pavlok_training_stop_stimulus(void)
 	service_info.cfg.piezo_value[3] = PLOK_250_MS;
 	service_info.cfg.piezo_value[4] = PLOK_250_MS;
 	service_task_perform_piezo_action(service_info.cfg.piezo_value);
-	
+
 	service_info.cfg.motor_value[0] = (PLOK_MOTOR_PERFORM_BIT | PLOK_MOTOR_COUNT_VALUE(3));
 	service_info.cfg.motor_value[1] = (1000 / PLOK_PWM_FREQ_STEP_VALUE);
 	service_info.cfg.motor_value[2] = 100;
 	service_info.cfg.motor_value[3] = PLOK_250_MS;
 	service_info.cfg.motor_value[4] = PLOK_80_MS;
 	service_task_perform_motor_action(service_info.cfg.motor_value);
-	
+
 	return;
 }
 
@@ -818,7 +818,7 @@ void pavlok_list_append(sNode_t * list, uint8_t * new_entry)
       {
         list = list->next;
       }
-        
+
       /* Allocate memory for the new node and put data in it.*/
       list->next  = (sNode_t *)nrf_malloc(sizeof(sNode_t));
       if (NULL != list->next)
@@ -833,7 +833,7 @@ void pavlok_list_append(sNode_t * list, uint8_t * new_entry)
 sNode_t * pavlok_list_next(sNode_t * list, sNode_t * current_entry)
 {
   sNode_t * next_entry = NULL;
-  
+
   if ((NULL != list)
       && (NULL != list->next))
   {
@@ -847,7 +847,7 @@ sNode_t * pavlok_list_next(sNode_t * list, sNode_t * current_entry)
         if (list->next == current_entry)
         {
           next_entry = list->next->next;
-        }          
+        }
         list = list->next;
       }
     }
@@ -879,19 +879,19 @@ int pavlok_list_find(sNode_t * pointer, uint8_t * new_entry)
 void pavlok_list_delete(sNode_t * list)
 {
   sNode_t * delete_node = NULL;
-  
+
   /* Go to the node for which the node next to it has to be deleted */
   while(NULL != list->next)
   {
     delete_node = list->next;
     list->next = delete_node->next;
-       
+
     if (NULL != delete_node)
     {
       nrf_free(delete_node);
     }
   } // eow
-       
+
   return;
 }
 
@@ -899,11 +899,11 @@ void pavlok_list_delete(sNode_t * list)
 sNode_t * pavlok_list_pop(sNode_t * list)
 {
   sNode_t * pop_node = list->next;
-  
+
   if (NULL != list->next)
   {
     list->next = list->next->next;
-  }   
+  }
   return pop_node;
 }
 
@@ -912,12 +912,12 @@ sNode_t * pavlok_list_pop(sNode_t * list)
 void pavlok_set_default_configuration(void)
 {
   (void)memset((uint8_t *)&service_info, 0, sizeof(service_info));
-  
+
 	service_info.training_active	= TRAINING_STATE_INACTIVE;
   service_info.cfg.zap_me_value[PLOK_INDEX_DC_BYTE_ZAP] = PLOK_DEFAULT_ZAP_DC;
 }
 
-void pavlok_vusb_init(void) 
+void pavlok_vusb_init(void)
 {
 	nrf_gpio_cfg_input(PAVLOK_V_USB_PIN, NRF_GPIO_PIN_NOPULL);
 }
@@ -925,9 +925,9 @@ void pavlok_vusb_init(void)
 bool pavlok_get_usb_pin_state(void)
 {
   bool rtn_code = false;
-  
+
   rtn_code = nrf_gpio_pin_read(PAVLOK_V_USB_PIN);
-  
+
   return rtn_code;
 }
 
@@ -957,7 +957,7 @@ int8_t pavlok_flash_area_start(eFlashAreaName_t area)
   {
     start_counter   = UNUSED_SECTOR;
   }
-  
+
   return start_counter;
 }
 
@@ -985,7 +985,7 @@ int8_t pavlok_flash_area_stop(eFlashAreaName_t area)
   {
     start_counter   = UNUSED_SECTOR;
   }
-  
+
   return start_counter;
 }
 
@@ -996,7 +996,7 @@ int8_t pavlok_flash_area_stop(eFlashAreaName_t area)
 **
 **	@brief	Description	called from a ble event write
 **
-**	@param [in]					ble_evt_t * p_ble_evt 
+**	@param [in]					ble_evt_t * p_ble_evt
 **
 **	@param	[out]				None
 **
@@ -1043,19 +1043,19 @@ static uint8_t find_name_in_sectors(char * name, eFlashAreaName_t area)
     start_counter   = UNUSED_SECTOR;
     end_counter     = UNUSED_SECTOR;
   }
- 
+
   if ((start_counter != UNUSED_SECTOR)
       && (end_counter != UNUSED_SECTOR))
   {
     for (int32_t  counter = start_counter; (counter < end_counter) && (false == found); counter++)
     {
       (void)memset(sector_name, 0, sizeof(sector_name));
-      
+
       sector_address = (counter * 32);
       // contract SERIAL_FLASH_TXRX_RET_T serial_flash_read_data(uint8_t *, uint32_t, uint32_t);
       rtn_code = serial_flash_read_data(sector_name, sector_address, PAVLOK_SECTOR_NAME_SIZE);
       APP_ERROR_CHECK(rtn_code);
-      
+
       // now index to the length field then find the end of the name
       name_length = (int16_t *)&sector_name[(PAVLOK_TLV_AP_NAME_INDEX - PAVLOK_TLV_VALUE_START)];
       rtn_code = memcmp(&sector_name[PAVLOK_SECTOR_NAME_SIZE], name, *name_length);
@@ -1065,7 +1065,7 @@ static uint8_t find_name_in_sectors(char * name, eFlashAreaName_t area)
         break;
       }
     }
-    
+
     if (false == found)
     {
       sector_address = UNUSED_SECTOR;

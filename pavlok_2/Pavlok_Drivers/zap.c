@@ -87,8 +87,7 @@ void zap_gpio_init(void)
 */
 void zap_gpio_enable(void)
 {
-
-	pwm_zap_update_duty(0);
+	pwm_zap_stop();
 	nrf_gpio_pin_set(ZAP_RELEASE_PIN);
   zapper_enabled = false;
 }
@@ -126,7 +125,7 @@ void zap_gpio_disable(void)
 void charge_zapper(void)
 {
   zapper_enabled = true;
-	pwm_zap_update_duty(50);
+	pwm_zap_stop();
 }
 
 /** ----------------------------------------------------------------------

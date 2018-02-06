@@ -54,7 +54,7 @@
 #include "habit.h"
 
 // Change this when an incompatible interface change is made.
-#define VERSION 0x0003
+#define VERSION 0x0004
 #define MAGIC_COOKIE 0x12980379
 
 typedef enum {
@@ -75,6 +75,7 @@ typedef enum {
   AH_CMD_SET_ZAP      = 14,
   AH_CMD_I2C_SCAN     = 15,
   AH_CMD_TEST_ACCEL2  = 16,
+  AH_CMD_ZAP_CHARGE   = 17,
 }   e_ate_cmd;
 
 
@@ -87,7 +88,7 @@ volatile struct {
 
     uint32_t      cmd;      // 10
     uint32_t      prevcmd;  // 14
-    int32_t       _res2;    // 18
+    int32_t       live;     // 18
     int32_t       result;   // 1c
 
     uint32_t      data[4];  // 20-24-28-2c
@@ -127,9 +128,38 @@ void main_thread(void * arg)
 
   gModel.mark = 100;
 
+  bool zap_charge_control = false;
+  int zap_charge_target = 0;
+  int zap_charge_level = 0;
+  bool charging = false;
+
   while (1) {
-      while (gModel.cmd == AH_CMD_NONE)
+      while (gModel.cmd == AH_CMD_NONE) {
           gModel.tick++;
+
+          // closed loop control of zapper
+          if (zap_charge_control) {
+                gModel.live = zap_charge_level = getZapVoltage();
+
+                if (charging) {
+                    if (zap_charge_level >= zap_charge_target) {
+                        pwm_zap_stop();
+                        charging = false;
+                    }
+                } else {
+                    if (zap_charge_level < zap_charge_target - 10) { // arbitrary, matches main code v5.1.1
+                        pwm_zap_start();
+                        charging = true;
+                    }
+                }
+
+                nrf_delay_ms(1);
+          } else if (charging) {
+                pwm_zap_stop();
+                charging = false;
+                gModel.live = 0;
+          }
+      }
 
       int result = gModel.result = -1;
       switch (gModel.cmd) {
@@ -235,6 +265,18 @@ void main_thread(void * arg)
             // "Test active" should be only "cmd != AH_CMD_NONE".
             break;
 
+        case AH_CMD_ZAP_CHARGE: {   // 17
+            zap_charge_control = gModel.data[0];
+            zap_charge_target = gModel.data[1];
+
+            if (!zap_charge_control) {
+                result = zap_charge_level;
+            } else {
+                result = 0;
+            }
+            break;
+        }
+
         default:
           result = -2;
           break;
@@ -263,7 +305,7 @@ int main(void)
   gModel.result = 0;
   gModel.cmd = gModel.prevcmd = AH_CMD_NONE;
 
-  gModel._res1 = gModel._res2 = 0;
+  gModel._res1 = gModel.live = 0;
   gModel.version = VERSION;
   gModel.magic = MAGIC_COOKIE;  // arbitary val
 
@@ -280,8 +322,8 @@ int main(void)
 
   gModel.mark = 5;
   pwm_piezo_init();
-	pwm_motor_init();
-  // pwm_zap_init();
+  pwm_motor_init();
+  pwm_zap_init();
   zap_gpio_init();
   vbatt_measure_init();
   pavlok_vusb_init();

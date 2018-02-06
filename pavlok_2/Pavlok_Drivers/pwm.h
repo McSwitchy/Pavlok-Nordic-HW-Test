@@ -230,26 +230,10 @@ PWM_UPDATE_RC pwm_motor_update_duty(PWM_PERCENT_T duty);
 */
 PWM_UPDATE_RC pwm_motor_update_duty_and_frequency(PWM_PERCENT_T duty, uint16_t frequency);
 
-/**	----------------------------------------------------------------------
-**
-**	@fn		Function	pwm_zap_update_duty
-**
-**	@brief	Description realtime change for duty cycle
-**
-**	@param [in]			PWM_PERCENT_T duty - this has limits
-**
-**	@param	[out]		None
-**
-**	@return				PWM_UPDATE_RC
-**
-**	@retval				UPDATE_SUCCESS = 0,
-**	@retval				INVALID_DUTY_CYCLE,
-**
-**	@warn				Not all duty cycles produce viable change
-**
-**	----------------------------------------------------------------------
-*/
-PWM_UPDATE_RC pwm_zap_update_duty(PWM_PERCENT_T duty);
+
+void pwm_zap_start(void);
+void pwm_zap_stop(void);
+
 
 #endif /* ${PWM_H} */
 /** @} */

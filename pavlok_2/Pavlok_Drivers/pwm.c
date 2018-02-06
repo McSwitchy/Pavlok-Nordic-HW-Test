@@ -357,34 +357,39 @@ PWM_UPDATE_RC pwm_piezo_update_duty_and_frequency(PWM_PERCENT_T duty, uint16_t f
 **
 **  ----------------------------------------------------------------------
 */
-PWM_UPDATE_RC pwm_zap_update_duty(PWM_PERCENT_T duty)
+void pwm_zap_start(void)
 {
 	uint16_t dutyScaled = 0;
 
-	// Check to see if duty cycle is valid
-	if (duty > 100)
-	{
-		return INVALID_DUTY_CYCLE;
-	}
-	if (duty % 10 != 0)
-	{
-		return INVALID_DUTY_CYCLE;
-	}
 	// Scale duty cycle with COUNTERTOP Value
-	dutyScaled = PWM_ZAP_SCALE_FACTOR(duty);
-	// Stop current sequence
-	nrf_drv_pwm_stop(&g_PWMZapInstance, 1);
-	// Update sequence
+	dutyScaled = PWM_ZAP_SCALE_FACTOR(50);
+
+	// // Stop current sequence
+	// nrf_drv_pwm_stop(&g_PWMZapInstance, 1);
+	// // Update sequence
 
 #if PWM_ZAP_USE_ACTIVE_HIGH
 	g_zapSequenceValue = PWM_POLARITY_HIGH(dutyScaled);
 #else
 	g_zapSequenceValue = PWM_POLARITY_LOW(dutyScaled);
 #endif
+
 	// Start playback of sequence
 	nrf_drv_pwm_simple_playback(&g_PWMZapInstance, &g_zapSequence, 1, NRF_DRV_PWM_FLAG_LOOP);
-
-	return UPDATE_SUCCESS;
 }
 
-/** @} */
+
+void pwm_zap_stop(void)
+{
+    // Stop current sequence
+    nrf_drv_pwm_stop(&g_PWMZapInstance, 1);
+
+#if PWM_ZAP_USE_ACTIVE_HIGH
+    g_zapSequenceValue = PWM_POLARITY_HIGH(0);
+#else
+    g_zapSequenceValue = PWM_POLARITY_LOW(0);
+#endif
+}
+
+
+// EOF

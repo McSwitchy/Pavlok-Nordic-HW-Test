@@ -54,7 +54,7 @@
 #include "habit.h"
 
 // Change this when an incompatible interface change is made.
-#define VERSION 0x0004
+#define VERSION 0x0006
 #define MAGIC_COOKIE 0x12980379
 
 typedef enum {
@@ -139,7 +139,8 @@ void main_thread(void * arg)
 
           // closed loop control of zapper
           if (zap_charge_control) {
-                gModel.live = zap_charge_level = getZapVoltage();
+                zap_charge_level = getZapVoltage();
+                gModel.live = adc_sample_channel(1) << 16 | zap_charge_level;
 
                 if (charging) {
                     if (zap_charge_level >= zap_charge_target) {
@@ -147,13 +148,13 @@ void main_thread(void * arg)
                         charging = false;
                     }
                 } else {
-                    if (zap_charge_level < zap_charge_target - 10) { // arbitrary, matches main code v5.1.1
+                    if (zap_charge_level < zap_charge_target - 2) { // arbitrary, matches main code v5.1.1
                         pwm_zap_start();
                         charging = true;
                     }
                 }
 
-                nrf_delay_ms(1);
+                nrf_delay_us(250);
           } else if (charging) {
                 pwm_zap_stop();
                 charging = false;

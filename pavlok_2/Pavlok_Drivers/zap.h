@@ -53,8 +53,14 @@ typedef uint16_t voltsUsb_t;
 
 // With the voltage divider of 1500 ohms and 3500 ohms, the ratio is 1.5
 #define BATT_MILLIVOLTS_RESISTOR_RATIO(x)		(millivoltsBattery_t)((x*3)/2)
+
 // With the voltage divider of 68K ohms and 10M ohms, the ratio is ~148
-#define ZAP_VOLTS_RESISTOR_RATIO(x)             (voltsZap_t)((x/1000.0)*148)
+// But in actual practice we get readings roughly 13.2% too high, so we adjust
+// them here by using 130 (148 divided by 1.132).
+// #define ZAP_VOLTS_RESISTOR_RATIO(x)       (((x)/1000.0)*148)
+#define MVOLTS_PER_VOLT                 1000
+#define ZAP_VOLTS_RESISTOR_RATIO(x)     (((x) * 130L) / MVOLTS_PER_VOLT)
+
 #define USB_VOLTS_RESISTOR_RATIO(x)				(voltsUsb_t)((x*1))
 
 /** ----------------------------------------------------------------------

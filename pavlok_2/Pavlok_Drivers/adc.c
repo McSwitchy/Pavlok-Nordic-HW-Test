@@ -98,14 +98,15 @@ static nrf_saadc_value_t adc_find_average(nrf_saadc_value_t *raw, uint8_t number
 {
 
 	uint8_t i = 0;
-	nrf_saadc_value_t sum = 0;
+	long sum = 0;
 	nrf_saadc_value_t avg = 0;
 
 	for (i = 0; i < number; i++)
 	{
 		sum += raw[i];
 	}
-	avg = (nrf_saadc_value_t)(sum/number);
+
+	avg = (nrf_saadc_value_t)((sum + number / 2) / number);
 
 	return avg;
 }

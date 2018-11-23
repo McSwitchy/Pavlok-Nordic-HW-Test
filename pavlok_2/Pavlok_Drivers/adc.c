@@ -184,8 +184,8 @@ void adc_init(void)
 */
 nrf_saadc_value_t adc_sample_channel(ADC_CHANNEL_T channel)
 {
-	ret_code_t 		ret = 0;
-	uint8_t 			i 	= 0;
+    ret_code_t ret = 0;
+    uint8_t    i = 0;
 
 	nrf_saadc_value_t samples[SAMPLES_IN_BUFFER], average = 0;
 
@@ -194,15 +194,22 @@ nrf_saadc_value_t adc_sample_channel(ADC_CHANNEL_T channel)
 		return 0;
 	}
 
-	(void)memset(samples, 0, sizeof(samples));
+	memset(samples, 0, sizeof(samples));
 
 	for (i = 0; i < SAMPLES_IN_BUFFER; i++)
 	{
-		ret = nrf_drv_saadc_sample_convert(channel, samples+i);
+        nrf_saadc_value_t reading;
+
+		ret = nrf_drv_saadc_sample_convert(channel, &reading);
 		if (ret != 0)
 		{
 			return 0;
 		}
+
+        // The A/D appears capable of returning negative values, which
+        // we're not really expecting elsewhere in the code so if we
+        // get any, peg them to 0.
+        samples[i] = reading >= 0 ? reading : 0;
 	}
 	average = adc_find_average(samples, SAMPLES_IN_BUFFER);
 

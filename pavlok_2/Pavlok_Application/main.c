@@ -54,7 +54,7 @@
 #include "habit.h"
 
 // Change this when an incompatible interface change is made.
-#define VERSION 0x0006
+#define VERSION 0x0007
 #define MAGIC_COOKIE 0x12980379
 
 typedef enum {
@@ -140,7 +140,10 @@ void main_thread(void * arg)
           // closed loop control of zapper
           if (zap_charge_control) {
                 zap_charge_level = getZapVoltage();
-                gModel.live = adc_sample_channel(1) << 16 | zap_charge_level;
+                nrf_saadc_value_t raw = 0x1234;
+                nrf_drv_saadc_sample_convert(HIGH_VOLTAGE_MONITOR, &raw);
+
+                gModel.live = (raw << 16L) | (zap_charge_level & 0xffff);
 
                 if (charging) {
                     if (zap_charge_level >= zap_charge_target) {

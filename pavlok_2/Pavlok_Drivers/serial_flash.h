@@ -3,11 +3,11 @@
 **	@file
 **
 **  @brief Description
-**  
-**  @details This module implements 
-**  
-**  @note The application must 
-**  
+**
+**  @details This module implements
+**
+**  @note The application must
+**
 **  @note Attention!
 **
 **------------------------------------------------------------------------
@@ -35,12 +35,13 @@
 */
 
 uint8_t demo_flash_read_write_read(void);
+int serial_flash_chip_erase(void);
 
 /** ----------------------------------------------------------------------
 **	@def	W25X40CL Definitions
 **	----------------------------------------------------------------------
 */
-// The max transfer bytes is defined by the control structure of the nrf52 SPI driver 
+// The max transfer bytes is defined by the control structure of the nrf52 SPI driver
 #define W25X40CL_MAX_TRANSFER_BYTES 					(240)
 #define W25X40CL_PAGE_SIZE_BYTES							(256)
 #define W25X40CL_REG_RANGE_LOW								(0x00)
@@ -48,7 +49,7 @@ uint8_t demo_flash_read_write_read(void);
 #define W25X40CL_REG_SIZE											(2)
 #define W25X40CL_MAX_TRANSFER									(16)
 #define W25X40CL_REGISTER_SIZE								(1)
-#define W25X40CL_MAX_ADDRESS									(uint32_t)(0xFFFFFF)
+#define W25X40CL_MAX_ADDRESS                            (uint32_t)(0x7FFFF)
 
 #define W25X40CL_OPCODE_DEVICE_ID							(0xAB)
 #define W25X40CL_DEVICE_ID										(0x12)
@@ -58,6 +59,7 @@ uint8_t demo_flash_read_write_read(void);
 #define W25X40CL_OPCODE_WRITE_ENABLE					(0x06)
 #define W25X40CL_OPCODE_PAGE_PROGRAM					(0x02)
 #define W25X40CL_OPCODE_SECTOR_ERASE					(0x20)
+#define W25X40CL_OPCODE_CHIP_ERASE                      0x60
 
 // Status register definitions
 #define STATUS_BUSY														(uint8_t)(1<<0)
@@ -67,9 +69,9 @@ uint8_t demo_flash_read_write_read(void);
 #define STATUS_BP2														(uint8_t)(1<<4)
 #define STATUS_TB															(uint8_t)(1<<5)
 #define STATUS_RESERVED												(uint8_t)(1<<6)
-#define STATUS_SRP														(uint8_t)(1<<7)	
+#define STATUS_SRP														(uint8_t)(1<<7)
 
-#define IS_STATUS_BIT_TRUE(x, y)							(uint8_t)(x & y)	
+#define IS_STATUS_BIT_TRUE(x, y)							(uint8_t)(x & y)
 
 /**	----------------------------------------------------------------------
 **	@enum	WEL_CONTROL_T
@@ -134,7 +136,7 @@ typedef enum {
 **
 **	@return					    SERIAL_FLASH_TXRX_RET_T
 **
-**	@warn						
+**	@warn
 **
 **	----------------------------------------------------------------------
 */
@@ -152,7 +154,7 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_check_get_device_id(void);
 **
 **	@return					    SERIAL_FLASH_TXRX_RET_T
 **
-**	@warn						
+**	@warn
 **
 **	----------------------------------------------------------------------
 */
@@ -170,7 +172,7 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_get_status(STATUS_REGISTER_T *);
 **
 **	@return					    SERIAL_FLASH_TXRX_RET_T
 **
-**	@warn						
+**	@warn
 **
 **	----------------------------------------------------------------------
 */
@@ -183,18 +185,18 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_write_control(WEL_CONTROL_T);
 **	@brief	Description Reads data from the flash chip
 **
 **	@param  [in]		    uint8_t* txData
-**                                  
+**
 **  @param  [in]		    uint8_t txLength
-**                                  
-**  @param  [in]		    uint8_t* rxData   
-**                                  
-**  @param  [in]		    uint8_t rxLength   
+**
+**  @param  [in]		    uint8_t* rxData
+**
+**  @param  [in]		    uint8_t rxLength
 **
 **	@param	[out]		    None
 **
 **	@return					    SERIAL_FLASH_TXRX_RET_T
 **
-**	@warn						
+**	@warn
 **
 **	----------------------------------------------------------------------
 */
@@ -207,18 +209,18 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_read_data(uint8_t *, uint32_t, uint32_t);
 **	@brief	Description Writes data from the flash chip
 **
 **	@param  [in]		    uint8_t* txData
-**                                  
+**
 **  @param  [in]		    uint8_t txLength
-**                                  
-**  @param  [in]		    uint8_t* rxData   
-**                                  
-**  @param  [in]		    uint8_t rxLength   
+**
+**  @param  [in]		    uint8_t* rxData
+**
+**  @param  [in]		    uint8_t rxLength
 **
 **	@param	[out]		    None
 **
 **	@return					    SERIAL_FLASH_TXRX_RET_T
 **
-**	@warn						
+**	@warn
 **
 **	----------------------------------------------------------------------
 */
@@ -231,12 +233,12 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_write_data(uint8_t *, uint32_t, uint32_t);
 **	@brief	Description Erases sector from the flash chip
 **
 **	@param  [in]		    uint32_t sector
-**                                  
+**
 **	@param	[out]		    None
 **
 **	@return					    SERIAL_FLASH_TXRX_RET_T
 **
-**	@warn						
+**	@warn
 **
 **	----------------------------------------------------------------------
 */

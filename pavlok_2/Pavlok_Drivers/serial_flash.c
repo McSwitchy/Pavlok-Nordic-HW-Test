@@ -2,17 +2,17 @@
 **
 **	@file
 **
-**  @defgroup 
+**  @defgroup
 **  @{
-**  @ingroup 
+**  @ingroup
 **  @brief
-**  
-**  @details This module implements 
-**  
-**  @note The application must 
-**  
+**
+**  @details This module implements
+**
+**  @note The application must
+**
 **  @note Attention!
-**   
+**
 **
 **------------------------------------------------------------------------
 */
@@ -44,8 +44,8 @@
 **	----------------------------------------------------------------------
 */
 // These two buffers are intended to be used with the read/write data commands.
-// The user will typically pass in a buffer, address, and length. The operations, 
-// however, always require additional dummy bytes. To make this transparent to the 
+// The user will typically pass in a buffer, address, and length. The operations,
+// however, always require additional dummy bytes. To make this transparent to the
 // user, these two buffers are used during the tx/rx and then their data is copied
 // into the user supplied buffer. The extra 8 bytes are used for control/dummy bytes.
 
@@ -66,52 +66,74 @@ static void set_instruction(uint8_t *, uint8_t);
 uint8_t dataIn[TRANSFER_SIZE] 	= {0};
 uint8_t dataOut[TRANSFER_SIZE] 	= {0};
 
+#define FLASH_TEST_SECTOR       126     // best if not used for anything real
+#define FLASH_SECTOR_SIZE       4096
+
 uint8_t demo_flash_read_write_read(void) {
 	uint16_t i = 0;
-  
-	serial_flash_sector_erase(0);
+    uint32_t res = 0;
+
+    uint32_t address = FLASH_TEST_SECTOR * FLASH_SECTOR_SIZE;
+	res = serial_flash_sector_erase(address);
 	nrf_delay_ms(305);
-	
-  memset(dataIn, 0, sizeof(dataIn));
-	serial_flash_read_data(dataIn, 0, TRANSFER_SIZE);
+
+    if (res)
+        return res;
+
+    memset(dataIn, 0, sizeof(dataIn));
+	res = serial_flash_read_data(dataIn, address, TRANSFER_SIZE);
+    if (res)
+        return res;
+
 	for (i=0; i<TRANSFER_SIZE; i++) {
 		if (dataIn[i] != 0xFF) {
-			return 0;
-		}
-	}
-	
-	memset(dataOut, 0xAA, sizeof(dataOut));
-	serial_flash_write_data(dataOut, 0, sizeof(dataOut));
-	nrf_delay_ms(1);
-	
-	serial_flash_read_data(dataIn, 0, TRANSFER_SIZE);
-	for (i=0; i<TRANSFER_SIZE; i++) {
-		if (dataIn[i] != 0xAA) {
-			return 0;
+			return 100;
 		}
 	}
 
-  memset(dataIn, 0, sizeof(dataIn));
-  serial_flash_sector_erase(0);
-	nrf_delay_ms(305);
-	
-	serial_flash_read_data(dataIn, 0, TRANSFER_SIZE);
+	memset(dataOut, 0xAA, sizeof(dataOut));
+	res = serial_flash_write_data(dataOut, address, sizeof(dataOut));
+    if (res)
+        return res;
+
+	nrf_delay_ms(1);
+
+	res = serial_flash_read_data(dataIn, address, TRANSFER_SIZE);
+    if (res)
+        return res;
+
 	for (i=0; i<TRANSFER_SIZE; i++) {
-		if (dataIn[i] != 0xFF) {
-			return 0;
+		if (dataIn[i] != 0xAA) {
+			return 100;
 		}
 	}
-  
+
+    memset(dataIn, 0, sizeof(dataIn));
+    res = serial_flash_sector_erase(address);
+	nrf_delay_ms(305);
+    if (res)
+        return res;
+
+	res = serial_flash_read_data(dataIn, address, TRANSFER_SIZE);
+    if (res)
+        return res;
+
+	for (i=0; i<TRANSFER_SIZE; i++) {
+		if (dataIn[i] != 0xFF) {
+			return 100;
+		}
+	}
+
   /*
 	memset(dataIn, 0, sizeof(dataIn));
-	
+
 	serial_flash_sector_erase(0);
 	nrf_delay_ms(305);
-	
+
 	memset(dataOut, 0xBB, sizeof(dataOut));
 	serial_flash_write_data(dataOut, 0, TRANSFER_SIZE);
 	nrf_delay_ms(1);
-	
+
 	serial_flash_read_data(dataIn, 0, TRANSFER_SIZE);
 	for (i=0; i<TRANSFER_SIZE; i++) {
 		if (dataIn[i] != 0xBB) {
@@ -119,10 +141,10 @@ uint8_t demo_flash_read_write_read(void) {
 		}
 	}
   */
-  
-  return 1;
-}                      
-                      
+
+  return 0;
+}
+
 /**	----------------------------------------------------------------------
 **	@brief	Static Functions
 **	----------------------------------------------------------------------
@@ -134,12 +156,12 @@ uint8_t demo_flash_read_write_read(void) {
 **	@brief	Description	Mid-level function to transfer SPI data
 **
 **	@param  [in]		uint8_t* txData
-**                                  
+**
 **  @param  [in]		uint8_t txLength
-**                                  
-**  @param  [in]		uint8_t* rxData   
-**                                  
-**  @param  [in]		uint8_t rxLength   
+**
+**  @param  [in]		uint8_t* rxData
+**
+**  @param  [in]		uint8_t rxLength
 **
 **	@param  [out]		None
 **
@@ -148,11 +170,11 @@ uint8_t demo_flash_read_write_read(void) {
 **	@warn
 **
 **	----------------------------------------------------------------------
-*/   
-static SERIAL_FLASH_TXRX_RET_T serial_flash_txrx(uint8_t *txData, uint8_t txLength, uint8_t *rxData, uint8_t rxLength) 
+*/
+static SERIAL_FLASH_TXRX_RET_T serial_flash_txrx(uint8_t *txData, uint8_t txLength, uint8_t *rxData, uint8_t rxLength)
 {
 	ret_code_t errCode = 0;
-	
+
 #if 0
 	if (*txData == NULL && txLength > 0 ) {
 		return SERIAL_FLASH_NULL_DATA;
@@ -167,15 +189,15 @@ static SERIAL_FLASH_TXRX_RET_T serial_flash_txrx(uint8_t *txData, uint8_t txLeng
 		return SERIAL_FLASH_INVALID_SIZE;
 	}
 #endif
-	
+
 	errCode = spi2_sync_txrx(txData, txLength, rxData, rxLength);
-	
+
 	if (errCode != NRF_SUCCESS) {
 		return SERIAL_FLASH_TXRX_ERROR;
 	}
-	
+
 	return SERIAL_FLASH_SUCCESS;
-}	
+}
 
 /**	----------------------------------------------------------------------
 **
@@ -184,8 +206,8 @@ static SERIAL_FLASH_TXRX_RET_T serial_flash_txrx(uint8_t *txData, uint8_t txLeng
 **	@brief	Description	Sets instruction's op code
 **
 **	@param  [in]		uint8_t* data
-**                                  
-**  @param  [in]		uint8_t opcode                                  
+**
+**  @param  [in]		uint8_t opcode
 **
 **	@param  [out]		None
 **
@@ -194,8 +216,8 @@ static SERIAL_FLASH_TXRX_RET_T serial_flash_txrx(uint8_t *txData, uint8_t txLeng
 **	@warn
 **
 **	----------------------------------------------------------------------
-*/   
-static void set_instruction(uint8_t *buffer, uint8_t instructionCode) 
+*/
+static void set_instruction(uint8_t *buffer, uint8_t instructionCode)
 {
 	buffer[0] = instructionCode;
 }
@@ -210,27 +232,27 @@ static void set_instruction(uint8_t *buffer, uint8_t instructionCode)
 **
 **	@brief	Description		Queries flash chip's device ID
 **
-**  @note   See include file for further infor on this function 
+**  @note   See include file for further infor on this function
 **
 **	@warn
 **
 **  ----------------------------------------------------------------------
 */
 #define READ_DEVICE_ID_TXRX_SIZE (5)
-SERIAL_FLASH_TXRX_RET_T serial_flash_check_get_device_id(void) 
+SERIAL_FLASH_TXRX_RET_T serial_flash_check_get_device_id(void)
 {
 	get_buffers(READ_DEVICE_ID_TXRX_SIZE, READ_DEVICE_ID_TXRX_SIZE);
 	set_instruction(txBuf, W25X40CL_OPCODE_DEVICE_ID);
-	
+
 	if (serial_flash_txrx(txBuf, READ_DEVICE_ID_TXRX_SIZE, rxBuf, READ_DEVICE_ID_TXRX_SIZE) != NRF_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-	
+
 	// Loop through rx buf until device ID is found
 	for (uint8_t i=0; i<READ_DEVICE_ID_TXRX_SIZE; i++) {
 		if (rxBuf[i] == W25X40CL_DEVICE_ID) {
 			return SERIAL_FLASH_SUCCESS;
 		}
 	}
-	
+
 	return SERIAL_FLASH_TXRX_ERROR;
 }
 #undef READ_DEVICE_ID_TXRX_SIZE
@@ -241,24 +263,24 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_check_get_device_id(void)
 **
 **	@brief	Description		Queries flash chip's status
 **
-**  @note   See include file for further infor on this function 
+**  @note   See include file for further infor on this function
 **
 **	@warn
 **
 **  ----------------------------------------------------------------------
 */
 #define READ_STATUS_TXRX_SIZE (2)
-SERIAL_FLASH_TXRX_RET_T serial_flash_get_status(STATUS_REGISTER_T *status) 
+SERIAL_FLASH_TXRX_RET_T serial_flash_get_status(STATUS_REGISTER_T *status)
 {
 	volatile uint8_t statusRegister = 0;
-	
+
 	get_buffers(READ_STATUS_TXRX_SIZE, READ_STATUS_TXRX_SIZE);
 	set_instruction(txBuf, W25X40CL_OPCODE_READ_STATUS);
-	
+
 	if (serial_flash_txrx(txBuf, READ_STATUS_TXRX_SIZE, rxBuf, READ_STATUS_TXRX_SIZE) != NRF_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-	
+
 	statusRegister = rxBuf[1];
-	
+
 	status->busy 	= IS_STATUS_BIT_TRUE(statusRegister, STATUS_BUSY) ? 1 : 0;
 	status->wel		= IS_STATUS_BIT_TRUE(statusRegister, STATUS_WEL) 	? 1 : 0;
 	status->bp0 	= IS_STATUS_BIT_TRUE(statusRegister, STATUS_BP0) 	? 1 : 0;
@@ -266,7 +288,7 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_get_status(STATUS_REGISTER_T *status)
 	status->bp2 	= IS_STATUS_BIT_TRUE(statusRegister, STATUS_BP2) 	? 1 : 0;
 	status->tb		= IS_STATUS_BIT_TRUE(statusRegister, STATUS_TB) 	? 1 : 0;
 	status->srp		= IS_STATUS_BIT_TRUE(statusRegister, STATUS_SRP) 	? 1 : 0;
-	
+
 	return SERIAL_FLASH_SUCCESS;
 }
 #undef READ_STATUS_TXRX_SIZE
@@ -277,7 +299,7 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_get_status(STATUS_REGISTER_T *status)
 **
 **	@brief	Description		Enables/Disables write enable latch
 **
-**  @note   See include file for further infor on this function 
+**  @note   See include file for further infor on this function
 **
 **	@warn
 **
@@ -285,10 +307,10 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_get_status(STATUS_REGISTER_T *status)
 */
 #define WRITE_WEL_TXRX_SIZE (1)
 #define LATCH_CONTROL_RETRY (10)
-SERIAL_FLASH_TXRX_RET_T serial_flash_write_control(WEL_CONTROL_T control) 
+SERIAL_FLASH_TXRX_RET_T serial_flash_write_control(WEL_CONTROL_T control)
 {
 	get_buffers(WRITE_WEL_TXRX_SIZE, WRITE_WEL_TXRX_SIZE);
-	
+
 	if (control == WRITE_ENABLE) {
 		set_instruction(txBuf, W25X40CL_OPCODE_WRITE_ENABLE);
 	} else if (control == WRITE_DISABLE) {
@@ -296,9 +318,9 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_write_control(WEL_CONTROL_T control)
 	} else {
 		return SERIAL_FLASH_INVALID_PARAMETER;
 	}
-	
+
 	if (serial_flash_txrx(txBuf, WRITE_WEL_TXRX_SIZE, rxBuf, WRITE_WEL_TXRX_SIZE) != NRF_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-	
+
 	nrf_delay_us(10);
 
 #if 0
@@ -306,13 +328,13 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_write_control(WEL_CONTROL_T control)
 	do {
 		// Let's check to see if the latch has been enabled/disabled
 		if (serial_flash_get_status(&status) != SERIAL_FLASH_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-		
+
 		retry++;
 	} while (retry < LATCH_CONTROL_RETRY && status.wel != control);
-	
+
 	if (retry == LATCH_CONTROL_RETRY) { return SERIAL_FLASH_UNABLE_TO_ENABLE_WRITE_LATCH; }
-#endif		
-	
+#endif
+
 	return SERIAL_FLASH_SUCCESS;
 }
 #undef WRITE_WEL_TXRX_SIZE
@@ -324,17 +346,17 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_write_control(WEL_CONTROL_T control)
 **
 **	@brief	Description		Reads data from the flash chip
 **
-**  @note   See include file for further infor on this function 
+**  @note   See include file for further infor on this function
 **
 **	@warn
 **
 **  ----------------------------------------------------------------------
 */
 #define READ_DATA_CODE_ADDR_SIZE (4)
-SERIAL_FLASH_TXRX_RET_T serial_flash_read_data(uint8_t *data, uint32_t address, uint32_t length) 
+SERIAL_FLASH_TXRX_RET_T serial_flash_read_data(uint8_t *data, uint32_t address, uint32_t length)
 {
 	STATUS_REGISTER_T status  = {0};
-	
+
 	// Check parameters
 	if (address > W25X40CL_MAX_ADDRESS) {
 		return SERIAL_FLASH_INVALID_ADDRESS;
@@ -348,28 +370,28 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_read_data(uint8_t *data, uint32_t address, 
 	if (data == NULL) {
 		return SERIAL_FLASH_NULL_DATA;
 	}
-	
+
 	// Check to see if chip is busy
 	if (serial_flash_get_status(&status) != SERIAL_FLASH_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-	if (status.busy == 1) { 
-		return SERIAL_FLASH_BUSY; 
+	if (status.busy == 1) {
+		return SERIAL_FLASH_BUSY;
 	}
-	
+
 	// Clear global buffers
 	memset(spiTxBufGlobal, SPI_TXRX_BUF_GLOBAL_SIZE_BYTES, 0);
 	memset(spiRxBufGlobal, SPI_TXRX_BUF_GLOBAL_SIZE_BYTES, 0);
-	
+
 	// Populate tx global buffer with op code and data address
 	spiTxBufGlobal[0] = W25X40CL_OPCODE_READ_DATA;
 	spiTxBufGlobal[1] = ((address & (uint32_t)0xFF0000) >> 16);
 	spiTxBufGlobal[2] = ((address & (uint32_t)0x00FF00) >> 8);
 	spiTxBufGlobal[3] = ((address & (uint32_t)0x0000FF));
-	
+
 	if (serial_flash_txrx(spiTxBufGlobal, READ_DATA_CODE_ADDR_SIZE+length, spiRxBufGlobal, READ_DATA_CODE_ADDR_SIZE+length) != NRF_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-	
+
 	// Copy data into user provided buffer after stripping dummy bytes
 	memcpy(data, spiRxBufGlobal+READ_DATA_CODE_ADDR_SIZE, length);
-	
+
 	return SERIAL_FLASH_SUCCESS;
 }
 #undef READ_DATA_CODE_ADDR_SIZE
@@ -380,20 +402,20 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_read_data(uint8_t *data, uint32_t address, 
 **
 **	@brief	Description		Writes data from the flash chip
 **
-**  @note   See include file for further infor on this function 
+**  @note   See include file for further infor on this function
 **
 **	@warn
 **
 **  ----------------------------------------------------------------------
 */
 #define WRITE_DATA_CODE_ADDR_SIZE (4)
-SERIAL_FLASH_TXRX_RET_T serial_flash_write_data(uint8_t *data, uint32_t address, uint32_t length) 
+SERIAL_FLASH_TXRX_RET_T serial_flash_write_data(uint8_t *data, uint32_t address, uint32_t length)
 {
 	STATUS_REGISTER_T status  = {0};
 	uint16_t reference = 0;
-	
+
 	reference = address % W25X40CL_PAGE_SIZE_BYTES;
-	
+
 	// Check parameters
 	if (address > W25X40CL_MAX_ADDRESS) {
 		return SERIAL_FLASH_INVALID_ADDRESS;
@@ -410,33 +432,33 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_write_data(uint8_t *data, uint32_t address,
 	if (data == NULL) {
 		return SERIAL_FLASH_NULL_DATA;
 	}
-	
+
 	// Check to see if chip is busy
 	if (serial_flash_get_status(&status) != SERIAL_FLASH_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-	if (status.busy == 1) { 
-		return SERIAL_FLASH_BUSY; 
+	if (status.busy == 1) {
+		return SERIAL_FLASH_BUSY;
 	}
-	
+
 	// Clear global buffers
 	memset(spiTxBufGlobal, SPI_TXRX_BUF_GLOBAL_SIZE_BYTES, 0);
 	memset(spiRxBufGlobal, SPI_TXRX_BUF_GLOBAL_SIZE_BYTES, 0);
-	
+
 	// Populate tx global buffer with op code and data address
 	spiTxBufGlobal[0] = W25X40CL_OPCODE_PAGE_PROGRAM;
 	spiTxBufGlobal[1] = ((address & (uint32_t)0xFF0000) >> 16);
 	spiTxBufGlobal[2] = ((address & (uint32_t)0x00FF00) >> 8);
 	spiTxBufGlobal[3] = ((address & (uint32_t)0x0000FF));
-	
+
 	// Copy data into buffer
 	memcpy(&spiTxBufGlobal[4], data, length);
-	
+
 	// Disable/Enable Write latch
 	if (serial_flash_write_control(WRITE_DISABLE) != SERIAL_FLASH_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
 	if (serial_flash_write_control(WRITE_ENABLE) != SERIAL_FLASH_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
 	serial_flash_get_status(&status);
-	
+
 	if (serial_flash_txrx(spiTxBufGlobal, WRITE_DATA_CODE_ADDR_SIZE+length, spiRxBufGlobal, WRITE_DATA_CODE_ADDR_SIZE+length) != NRF_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-	
+
 	return SERIAL_FLASH_SUCCESS;
 }
 #undef WRITE_DATA_CODE_ADDR_SIZE
@@ -447,46 +469,135 @@ SERIAL_FLASH_TXRX_RET_T serial_flash_write_data(uint8_t *data, uint32_t address,
 **
 **	@brief	Description		Erases sector from the flash chip
 **
-**  @note   See include file for further infor on this function 
+**  @note   See include file for further infor on this function
 **
 **	@warn
 **
 **  ----------------------------------------------------------------------
 */
 #define SECTOR_ERASE_CODE_ADDR_SIZE (4)
-SERIAL_FLASH_TXRX_RET_T serial_flash_sector_erase(uint32_t address) 
+SERIAL_FLASH_TXRX_RET_T serial_flash_sector_erase(uint32_t address)
 {
 	STATUS_REGISTER_T status  = {0};
-	
+
 	// Check parameters
 	if (address > W25X40CL_MAX_ADDRESS) {
 		return SERIAL_FLASH_INVALID_ADDRESS;
 	}
-	
+
 	// Check to see if chip is busy
 	if (serial_flash_get_status(&status) != SERIAL_FLASH_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-	if (status.busy == 1) { 
-		return SERIAL_FLASH_BUSY; 
+	if (status.busy == 1) {
+		return SERIAL_FLASH_BUSY;
 	}
-	
+
 	// Clear global buffers
 	memset(spiTxBufGlobal, SPI_TXRX_BUF_GLOBAL_SIZE_BYTES, 0);
 	memset(spiRxBufGlobal, SPI_TXRX_BUF_GLOBAL_SIZE_BYTES, 0);
-	
+
 	// Populate tx global buffer with op code and data address
 	spiTxBufGlobal[0] = W25X40CL_OPCODE_SECTOR_ERASE;
 	spiTxBufGlobal[1] = ((address & (uint32_t)0xFF0000) >> 16);
 	spiTxBufGlobal[2] = ((address & (uint32_t)0x00FF00) >> 8);
 	spiTxBufGlobal[3] = ((address & (uint32_t)0x0000FF));
-	
+
 	if (serial_flash_write_control(WRITE_DISABLE) != SERIAL_FLASH_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
 	if (serial_flash_write_control(WRITE_ENABLE) != SERIAL_FLASH_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
 	serial_flash_get_status(&status);
-	
+
 	if (serial_flash_txrx(spiTxBufGlobal, SECTOR_ERASE_CODE_ADDR_SIZE, spiRxBufGlobal, SECTOR_ERASE_CODE_ADDR_SIZE) != NRF_SUCCESS) { return SERIAL_FLASH_TXRX_ERROR; }
-	
+
 	return SERIAL_FLASH_SUCCESS;
 }
 #undef SECTOR_ERASE_CODE_ADDR_SIZE
+
+
+//-------------------------------------
+// Wait up to X milliseconds for the chip to be not busy.
+//
+int serial_flash_wait(int millis, STATUS_REGISTER_T * status)
+{
+    int res = 0;
+
+    * (uint8_t *) status = 0;
+
+    // wait until chip not busy, or timeout
+    while (1)
+    {
+        res = serial_flash_get_status(status);
+        if (res == SERIAL_FLASH_SUCCESS)
+        {
+            // NRF_LOG_DEBUG("stat 0x%02x\n", * (uint8_t *) status);
+
+            if (!status->busy)
+                break;
+        }
+
+        millis -= 1;
+        if (millis <= 0)
+        {
+            res = SERIAL_FLASH_BUSY;
+            break;
+        }
+
+        // if (g.os_running) {
+        //     DELAY_MS(1);
+        // }
+        // else {
+            nrf_delay_ms(1);
+        // }
+    };
+
+    return res;
+}
+
+//-------------------------------------
+// Erase entire flash chip.
+//
+int serial_flash_chip_erase(void)
+{
+    int res;
+    STATUS_REGISTER_T status = {0};
+
+    do {
+        res = serial_flash_wait(200, &status);
+        if (res) break;
+
+        // // Why do we do a disable before doing the enable?  And couldn't we
+        // // simply check the current mode to see if it's already enabled?
+        // // Or blindly shove the write-enable down its throat?
+        res = serial_flash_write_control(WRITE_DISABLE);
+        if (res) break;
+
+        res = serial_flash_write_control(WRITE_ENABLE);
+        if (res) break;
+
+        res = serial_flash_get_status(&status);
+        if (res) break;
+
+        if (status.wel && !status.busy)
+        {
+            spiTxBufGlobal[0] = W25X40CL_OPCODE_CHIP_ERASE;
+
+            if (spi2_sync_txrx(spiTxBufGlobal, 1, NULL, 0))
+                break;
+
+            NRF_LOG_DEBUG("wait erase 0x%02x\n", *(uint8_t *) &status);
+            res = serial_flash_wait(4500, &status);  // worst case 4000, apparently
+            if (res) break;
+
+            NRF_LOG_DEBUG("erase done\n");
+        }
+        else
+        {
+            NRF_LOG_ERROR("write enable failed\n");
+        }
+
+    } while (0);
+
+    return res;
+}
+
+
 
 /** @} */

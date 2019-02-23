@@ -54,7 +54,7 @@
 #include "habit.h"
 
 // Change this when an incompatible interface change is made.
-#define VERSION 0x0007
+#define VERSION 0x0008
 #define MAGIC_COOKIE 0x12980379
 
 typedef enum {
@@ -76,6 +76,7 @@ typedef enum {
   AH_CMD_I2C_SCAN     = 15,
   AH_CMD_TEST_ACCEL2  = 16,
   AH_CMD_ZAP_CHARGE   = 17,
+  AH_CMD_WIPE_FLASH   = 18,
 }   e_ate_cmd;
 
 
@@ -191,7 +192,7 @@ void main_thread(void * arg)
           break;
 
         case AH_CMD_TEST_FLASH: // 5
-          result = demo_flash_read_write_read() ? 0 : 1;
+          result = demo_flash_read_write_read();
           break;
 
         case AH_CMD_TEST_RTC: // 6
@@ -280,6 +281,10 @@ void main_thread(void * arg)
             }
             break;
         }
+
+        case AH_CMD_WIPE_FLASH: // 18
+          result = serial_flash_chip_erase() ? 0 : 1;
+          break;
 
         default:
           result = -2;

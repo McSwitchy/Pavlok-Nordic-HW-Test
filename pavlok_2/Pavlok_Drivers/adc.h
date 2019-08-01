@@ -102,6 +102,8 @@ void adc_init(void);
 **	----------------------------------------------------------------------
 */
 nrf_saadc_value_t adc_sample_channel(ADC_CHANNEL_T);
+nrf_saadc_value_t adc_sample_channel_once(ADC_CHANNEL_T);
+
 
 #endif
 

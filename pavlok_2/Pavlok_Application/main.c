@@ -32,6 +32,7 @@
 #include "accel_mag.h"
 #include "notification.h"
 #include "configuration.h"
+#include "diagnostics.h"
 #include "appsvc.h"
 #include "solicited.h"
 #include "log_info.h"
@@ -54,7 +55,7 @@
 #include "habit.h"
 
 // Change this when an incompatible interface change is made.
-#define VERSION 0x0008
+#define VERSION 0x000a
 #define MAGIC_COOKIE 0x12980379
 
 typedef enum {
@@ -77,6 +78,7 @@ typedef enum {
   AH_CMD_TEST_ACCEL2  = 16,
   AH_CMD_ZAP_CHARGE   = 17,
   AH_CMD_WIPE_FLASH   = 18,
+  // AH_CMD_CHECK_INT    = 19,
 }   e_ate_cmd;
 
 
@@ -135,16 +137,21 @@ void main_thread(void * arg)
   bool charging = false;
 
   while (1) {
+      uint32_t zap_period = 0;
+
       while (gModel.cmd == AH_CMD_NONE) {
           gModel.tick++;
 
           // closed loop control of zapper
           if (zap_charge_control) {
+                uint32_t _start = diag_ticks();
+
                 zap_charge_level = getZapVoltage();
                 nrf_saadc_value_t raw = 0x1234;
                 nrf_drv_saadc_sample_convert(HIGH_VOLTAGE_MONITOR, &raw);
 
                 gModel.live = (raw << 16L) | (zap_charge_level & 0xffff);
+                // gModel.live = (zap_period << 16L) | (zap_charge_level & 0xffff);
 
                 if (charging) {
                     if (zap_charge_level >= zap_charge_target) {
@@ -158,7 +165,9 @@ void main_thread(void * arg)
                     }
                 }
 
-                nrf_delay_us(250);
+                // nrf_delay_us(1);
+                zap_period = diag_delta(_start);
+
           } else if (charging) {
                 pwm_zap_stop();
                 charging = false;
@@ -228,11 +237,21 @@ void main_thread(void * arg)
           break;
 
         case AH_CMD_TEST_PIEZO: // 11
-          result = pwm_piezo_update_duty_and_frequency(gModel.data[0], 3000);
+          if (gModel.data[0])
+            result = pwm_piezo_update_duty_and_frequency(gModel.data[0], 3000);
+          else {
+            pwm_piezo_stop();
+            result = 0;
+          }
           break;
 
         case AH_CMD_TEST_MOTOR: // 12
-          result = pwm_motor_update_duty_and_frequency(gModel.data[0], 4000);
+          if (gModel.data[0])
+            result = pwm_motor_update_duty_and_frequency(gModel.data[0], 4000);
+          else {
+            pwm_motor_stop();
+            result = 0;
+          }
           break;
 
         case AH_CMD_READ_ADC: // 13
@@ -319,9 +338,7 @@ int main(void)
   gModel.magic = MAGIC_COOKIE;  // arbitary val
 
   clock_init();
-  nrf_drv_systick_init();
-
-  // timers_init();
+  diag_init();
 
   gModel.mark = 2;
   init_leds();
@@ -337,7 +354,13 @@ int main(void)
   vbatt_measure_init();
   pavlok_vusb_init();
 
-  // accelerometer_init_pulse();
+  // configure interrupt pins as inputs so we can read them
+  // (but they won't actually generate interrupts this way)
+  nrf_gpio_cfg_input(RTC_INT_PIN, NRF_GPIO_PIN_NOPULL); // should be default?
+  nrf_gpio_cfg_input(ACC_MAG_INT1_PIN, NRF_GPIO_PIN_PULLUP);
+  nrf_gpio_cfg_input(ACC_MAG_INT2_PIN, NRF_GPIO_PIN_PULLUP);
+  nrf_gpio_cfg_input(GYRO_INT1_PIN, NRF_GPIO_PIN_PULLUP);
+  nrf_gpio_cfg_input(GYRO_INT2_PIN, NRF_GPIO_PIN_PULLUP);
 
   gModel.mark = 7;
   nrf_gpio_cfg_input(CHG_PIN, NRF_GPIO_PIN_NOPULL);

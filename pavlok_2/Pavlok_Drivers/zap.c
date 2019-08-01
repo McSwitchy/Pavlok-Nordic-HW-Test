@@ -242,7 +242,7 @@ voltsZap_t getZapVoltage(void)
 	uint32_t 						mVChannel = 0;
 	voltsZap_t 					volts = 0;
 
-	sampleVal 				= adc_sample_channel(HIGH_VOLTAGE_MONITOR);
+	sampleVal 				= adc_sample_channel_once(HIGH_VOLTAGE_MONITOR);
 	mVChannel 				= ADC_RESULT_IN_MILLI_VOLTS(sampleVal);
 	volts 						= ZAP_VOLTS_RESISTOR_RATIO(mVChannel);
 

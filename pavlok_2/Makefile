@@ -42,6 +42,7 @@ SRC_FILES += \
   $(PROJ_DIR)/Pavlok_Drivers/accel_mag.c \
   $(PROJ_DIR)/Pavlok_Drivers/adc.c \
   $(PROJ_DIR)/Pavlok_Drivers/gyro.c \
+  $(PROJ_DIR)/Pavlok_Drivers/diagnostics.c \
   $(PROJ_DIR)/Pavlok_Drivers/i2c.c \
   $(PROJ_DIR)/Pavlok_Drivers/leds.c \
   $(PROJ_DIR)/Pavlok_Drivers/pwm.c \

@@ -231,6 +231,8 @@ PWM_UPDATE_RC pwm_motor_update_duty(PWM_PERCENT_T duty);
 PWM_UPDATE_RC pwm_motor_update_duty_and_frequency(PWM_PERCENT_T duty, uint16_t frequency);
 
 
+void pwm_motor_stop(void);
+void pwm_piezo_stop(void);
 void pwm_zap_start(void);
 void pwm_zap_stop(void);
 

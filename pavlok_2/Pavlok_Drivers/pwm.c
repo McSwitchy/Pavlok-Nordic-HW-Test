@@ -281,6 +281,22 @@ PWM_UPDATE_RC pwm_motor_update_duty_and_frequency(PWM_PERCENT_T duty, uint16_t f
 	return UPDATE_SUCCESS;
 }
 
+void pwm_motor_stop(void)
+{
+#if PWM_MOTOR_USE_ACTIVE_HIGH
+    g_motorSequenceValue = PWM_POLARITY_HIGH(0);
+#else
+    g_motorSequenceValue = PWM_POLARITY_LOW(0);
+#endif
+
+    // Stop current playback
+    nrf_drv_pwm_stop(&g_PWMMotorInstance, 1);
+
+    // Un-initialize current instance
+    nrf_drv_pwm_uninit(&g_PWMMotorInstance);
+}
+
+
 /** ----------------------------------------------------------------------
 **
 **	@fn		Function				pwm_piezo_update_duty_and_frequency
@@ -344,6 +360,23 @@ PWM_UPDATE_RC pwm_piezo_update_duty_and_frequency(PWM_PERCENT_T duty, uint16_t f
 
 	return UPDATE_SUCCESS;
 }
+
+
+
+void pwm_piezo_stop(void)
+{
+    // Stop current playback
+    nrf_drv_pwm_stop(&g_PWMPiezoInstance, 1);
+    // Un-initialize current instance
+    nrf_drv_pwm_uninit( &g_PWMPiezoInstance );
+
+#if PWM_PIEZO_USE_ACTIVE_HIGH
+    g_piezoSequenceValue = PWM_POLARITY_HIGH(0);
+#else
+    g_piezoSequenceValue = PWM_POLARITY_LOW(0);
+#endif
+}
+
 
 /** ----------------------------------------------------------------------
 **

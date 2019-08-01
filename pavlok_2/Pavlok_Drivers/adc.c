@@ -216,4 +216,25 @@ nrf_saadc_value_t adc_sample_channel(ADC_CHANNEL_T channel)
 	return average;
 }
 
+
+nrf_saadc_value_t adc_sample_channel_once(ADC_CHANNEL_T channel)
+{
+    ret_code_t ret = 0;
+    nrf_saadc_value_t result = 0;
+
+    if (channel >= NUMBER_OF_SUPPORTED_ADC_CHANNELS)
+    {
+        return 0;
+    }
+
+    ret = nrf_drv_saadc_sample_convert(channel, &result);
+    if (ret != 0)
+    {
+        return 0;
+    }
+
+    return result;
+}
+
+
 /** @} */

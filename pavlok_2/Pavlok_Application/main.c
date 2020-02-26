@@ -55,7 +55,7 @@
 #include "habit.h"
 
 // Change this when an incompatible interface change is made.
-#define VERSION 0x000a
+#define VERSION 0x000b
 #define MAGIC_COOKIE 0x12980379
 
 typedef enum {
@@ -207,7 +207,16 @@ void main_thread(void * arg)
         case AH_CMD_TEST_RTC: // 6
           ret = rtc_init();
           if (ret) {
-            RTC_TIME_STRUCT_T setTime = {0};
+            // int8_t seconds;
+            // int8_t minutes;
+            // int8_t hours;
+            // int8_t days;
+            // int8_t weekdays;
+            // int8_t months;
+            // int8_t years;
+
+            // Note: Saturday Jan 1 2000 at 00:00:00
+            RTC_TIME_STRUCT_T setTime = {0x00, 0x00, 0x00, 0x00, 0x06, 0x01, 0x00};
             RTC_TIME_STRUCT_T getTime = {0};
             // memset(&setTime, 0, sizeof(setTime);
             // memset(&getTime, 0, sizeof(getTime);

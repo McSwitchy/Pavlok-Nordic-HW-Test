@@ -55,7 +55,7 @@
 #include "habit.h"
 
 // Change this when an incompatible interface change is made.
-#define VERSION 0x000b
+#define VERSION 0x000c
 #define MAGIC_COOKIE 0x12980379
 
 typedef enum {

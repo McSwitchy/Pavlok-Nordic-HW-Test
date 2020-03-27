@@ -233,6 +233,12 @@ nrf_saadc_value_t adc_sample_channel_once(ADC_CHANNEL_T channel)
         return 0;
     }
 
+    // clip negative values to zero to avoid problems at higher levels
+    // where the value is assumed to be unsigned
+    if (result < 0)
+        result = 0;
+    // result = MAX(0, result);
+
     return result;
 }
 
